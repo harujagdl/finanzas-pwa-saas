@@ -144,6 +144,26 @@
     .auth-toggle{
       font-size:.9rem;
     }
+    .auth-divider{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:12px 0;
+      color:var(--text-muted);
+      font-size:.85rem;
+      text-transform:lowercase;
+    }
+    .auth-divider::before,
+    .auth-divider::after{
+      content:"";
+      flex:1;
+      height:1px;
+      background:var(--border-color);
+    }
+    .btn-outline-dark.btn-loading .spinner{
+      border-color:rgba(31,41,55,.35);
+      border-top-color:var(--text-main);
+    }
     .skeleton{
       position:relative; overflow:hidden; background:var(--bg-body);
       border-radius:10px;
@@ -418,6 +438,12 @@
       <div class="text-muted small mb-3" id="auth-subtitle">Accede para continuar con tu panel financiero.</div>
       <div id="auth-message" class="alert alert-danger d-none auth-message" role="alert"></div>
       <form id="auth-form">
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-dark" type="button" id="google-auth-btn">
+            <i class="fab fa-google me-2"></i> Continuar con Google
+          </button>
+        </div>
+        <div class="auth-divider" aria-hidden="true">o</div>
         <div class="mb-3">
           <label class="small text-muted fw-bold">Email</label>
           <input type="email" id="auth-email" class="form-control" placeholder="tu@email.com" autocomplete="email" required />
@@ -1140,7 +1166,11 @@
       onAuthStateChanged,
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword,
-      signOut
+      signOut,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signInWithRedirect,
+      getRedirectResult
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import {
       collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
@@ -1243,10 +1273,16 @@
     const authSubmitBtn = document.getElementById("auth-submit");
     const authSecondaryBtn = document.getElementById("auth-secondary");
     const authToggleLink = document.getElementById("auth-toggle-link");
+    const googleAuthBtn = document.getElementById("google-auth-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const authGreeting = document.getElementById("auth-greeting");
     let authMode = "login";
     let authProcessing = false;
+
+    if(googleAuthBtn){
+      googleAuthBtn.dataset.labelHtml = `<i class="fab fa-google me-2"></i> Continuar con Google`;
+      googleAuthBtn.innerHTML = googleAuthBtn.dataset.labelHtml;
+    }
 
     function clearLoaderTimers(){
       if(loaderSoftTimeoutId) clearTimeout(loaderSoftTimeoutId);
@@ -1336,21 +1372,34 @@
       authMessage.classList.add(type === "success" ? "alert-success" : "alert-danger");
     }
 
-    function setAuthLoading(isLoading){
+    function setAuthLoading(isLoading, options = {}){
+      const { showSubmitLoading = true } = options;
       authProcessing = isLoading;
-      const elements = [authEmail, authPassword, authSubmitBtn, authSecondaryBtn, authToggleLink];
+      const elements = [authEmail, authPassword, authSubmitBtn, authSecondaryBtn, authToggleLink, googleAuthBtn];
       elements.forEach((el) => {
         if(el) el.disabled = isLoading;
       });
       if(authSubmitBtn){
         const label = authSubmitBtn.dataset.label || authSubmitBtn.textContent || "";
-        if(isLoading){
+        if(isLoading && showSubmitLoading){
           authSubmitBtn.classList.add("btn-loading");
           authSubmitBtn.innerHTML = `<span class="spinner" aria-hidden="true"></span>${label}`;
-        }else{
+        }else if(!isLoading){
           authSubmitBtn.classList.remove("btn-loading");
           authSubmitBtn.textContent = label;
         }
+      }
+    }
+
+    function setGoogleAuthLoading(isLoading){
+      if(!googleAuthBtn) return;
+      const labelHtml = googleAuthBtn.dataset.labelHtml || googleAuthBtn.innerHTML || "";
+      if(isLoading){
+        googleAuthBtn.classList.add("btn-loading");
+        googleAuthBtn.innerHTML = `<span class="spinner" aria-hidden="true"></span>Abriendo Google...`;
+      }else{
+        googleAuthBtn.classList.remove("btn-loading");
+        googleAuthBtn.innerHTML = labelHtml;
       }
     }
 
@@ -1413,6 +1462,17 @@
       return "";
     }
 
+    function shouldFallbackToRedirect(err){
+      const code = err?.code || "";
+      const popupErrors = [
+        "auth/popup-blocked",
+        "auth/popup-closed-by-user",
+        "auth/cancelled-popup-request",
+        "auth/operation-not-supported-in-this-environment"
+      ];
+      return popupErrors.includes(code);
+    }
+
     async function ensureUserProfile(user){
       if(!db || !user) return null;
       const profileRef = doc(db, "users", user.uid);
@@ -1426,7 +1486,7 @@
         status: "active",
         plan: "free",
         role: "owner",
-        paidUntil: null
+        provider: user.providerData?.[0]?.providerId ?? "password"
       };
       await setDoc(profileRef, profile);
       return profile;
@@ -1454,6 +1514,51 @@
     async function logoutUser(){
       if(!auth) return;
       await signOut(auth);
+    }
+
+    async function loginWithGoogle(){
+      if(!auth || authProcessing) return;
+      setAuthMessage("");
+      setAuthLoading(true, { showSubmitLoading: false });
+      setGoogleAuthLoading(true);
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      let redirecting = false;
+      try{
+        const result = await signInWithPopup(auth, provider);
+        if(result?.user){
+          window.userProfile = await ensureUserProfile(result.user);
+        }
+      }catch(err){
+        if(shouldFallbackToRedirect(err)){
+          redirecting = true;
+          try{
+            await signInWithRedirect(auth, provider);
+          }catch(redirectErr){
+            setAuthMessage(getAuthErrorMessage(redirectErr));
+            redirecting = false;
+          }
+        }else{
+          setAuthMessage(getAuthErrorMessage(err));
+        }
+      }finally{
+        if(!redirecting){
+          setGoogleAuthLoading(false);
+          setAuthLoading(false, { showSubmitLoading: false });
+        }
+      }
+    }
+
+    async function handleRedirectResult(){
+      if(!auth) return;
+      try{
+        const result = await getRedirectResult(auth);
+        if(result?.user){
+          window.userProfile = await ensureUserProfile(result.user);
+        }
+      }catch(err){
+        console.warn("Google redirect error:", err?.message || err);
+      }
     }
 
     function getFirestoreErrorMessage(err){
@@ -1543,6 +1648,7 @@
       setAuthVisibility(false);
       startLoader();
       setLoaderMsg("Verificando sesión...");
+      handleRedirectResult();
       onAuthStateChanged(auth, async (user) => {
         if(user){
           window.currentUser = { uid: user.uid, email: user.email };
@@ -1568,6 +1674,9 @@
 
     if(authForm){
       authForm.addEventListener("submit", handleAuthSubmit);
+    }
+    if(googleAuthBtn){
+      googleAuthBtn.addEventListener("click", loginWithGoogle);
     }
     if(authSecondaryBtn){
       authSecondaryBtn.addEventListener("click", toggleAuthMode);

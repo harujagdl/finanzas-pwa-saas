@@ -9,6 +9,12 @@ Para cambiar de proyecto Firebase, **solo** edita `config/firebase-config.js` co
 
 > Nota: No mezcles proyectos Firebase por producto. Cada producto debe apuntar a un único proyecto Firebase para evitar datos cruzados, usuarios mezclados o configuraciones inconsistentes.
 
+### Google Sign-In (dominios autorizados)
+Para usar "Continuar con Google" debes registrar los dominios autorizados en Firebase Authentication:
+- `localhost`
+- `*.vercel.app`
+- tu dominio final en producción
+
 ## Cómo habilitar features más adelante
 La PWA usa flags en `index.html` para activar módulos legacy cuando estén listos:
 - `FEATURES` controla módulos como tarjetas, metas, alertas, resúmenes, gráficas, etc.
