@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mi Control Financiero</title>
+  <title>Finanzas</title>
 
   <!-- ✅ PWA -->
   <meta name="theme-color" content="#2563eb" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Finanzas Yayos" />
+  <meta name="apple-mobile-web-app-title" content="Finanzas" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
@@ -401,7 +401,8 @@
   <div id="view-home" class="view-section active p-3">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h5 class="fw-black m-0">Control Total</h5>
+        <h5 class="fw-black m-0">Finanzas</h5>
+        <div class="text-muted small">Tu control de gastos e ingresos</div>
         <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
           <div id="netBadge" class="net-badge offline">Offline</div>
           <span id="sync-status" class="sync-pill synced">Sincronizado</span>
@@ -410,9 +411,9 @@
       </div>
 
       <div class="d-flex gap-2 align-items-center">
-        <select id="owner-select" class="form-select form-select-sm owner-select" title="¿Quién está usando la app?">
-          <option value="yair">Yair</option>
-          <option value="haru">Haru</option>
+        <select id="owner-select" class="form-select form-select-sm owner-select" title="Espacio de trabajo">
+          <option value="general">General</option>
+          <option value="equipo">Equipo</option>
         </select>
 
         <!-- 🔔 Push (por ahora solo placeholder) -->
@@ -460,10 +461,45 @@
         <div class="banner-title">⚠️ Falta un índice de Firestore para cargar resúmenes.</div>
       </div>
       <div class="small mt-2">
-        Abre consola para el link o ve a Firestore → Índices y crea owner+type+date.
+        Al activar resúmenes avanzados podrías necesitar índices en Firestore.
         <a id="missing-index-link" class="banner-link ms-1 d-none" target="_blank" rel="noopener noreferrer">Abrir índice</a>
       </div>
     </div>
+
+    <section id="empty-state" class="card-box d-none">
+      <h6 class="fw-bold m-0">Sin datos</h6>
+      <p class="text-muted small mt-2">Aún no hay movimientos registrados. Empieza con tu primer registro.</p>
+      <div class="d-grid gap-2 mt-3">
+        <button class="btn btn-primary" type="button" onclick="nav('view-add')">Agregar movimiento</button>
+        <button class="btn btn-outline-secondary" type="button" onclick="nav('view-add')">Crear primer registro</button>
+      </div>
+    </section>
+
+    <section id="recent-movements" class="card-box">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold m-0"><i class="fas fa-list me-2"></i>Últimos movimientos</h6>
+        <button class="btn btn-sm btn-outline-secondary" type="button" onclick="nav('view-hist')">
+          Ver historial
+        </button>
+      </div>
+      <div id="recent-movements-list" class="text-muted small">Sin movimientos aún.</div>
+    </section>
+
+    <section id="placeholder-alerts" class="card-box">
+      <h6 class="fw-bold m-0">Próximamente: Alertas</h6>
+      <div class="text-muted small mt-2">Estamos preparando alertas personalizadas para gastos y pagos.</div>
+    </section>
+
+    <section id="placeholder-goals" class="card-box">
+      <h6 class="fw-bold m-0">Próximamente: Metas</h6>
+      <div class="text-muted small mt-2">Aquí podrás crear metas financieras cuando activemos el módulo.</div>
+    </section>
+
+    <section id="dev-seed-section" class="card-box d-none">
+      <h6 class="fw-bold m-0">Datos demo (solo desarrollo)</h6>
+      <p class="text-muted small mt-2">Carga tarjetas de ejemplo manualmente. No se ejecuta automáticamente.</p>
+      <button class="btn btn-outline-secondary btn-sm" type="button" id="load-demo-btn">Cargar demo</button>
+    </section>
 
     <section id="scope-filter-section" class="card-box p-3 mb-3">
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -545,7 +581,7 @@
       <div id="monthly-footprint-body" class="text-muted small">Generando resumen...</div>
     </section>
 
-    <div class="card-box mb-3">
+    <div id="payment-monitor-section" class="card-box mb-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="fw-bold m-0"><i class="fas fa-clipboard-check me-2"></i>Monitor de Pagos (Mes Actual)</h6>
         <span class="msi-pill" onclick="nav('view-msi')" style="cursor:pointer;">
@@ -555,7 +591,7 @@
       <div id="payment-monitor-list"><small class="text-muted">Cargando pagos...</small></div>
     </div>
 
-    <div class="card-box p-3 mb-3">
+    <div id="utilization-section" class="card-box p-3 mb-3">
       <div class="d-flex justify-content-between mb-2">
         <span class="kpi-label">Nivel de Endeudamiento</span>
         <span class="fw-bold small sensitive-data" id="util-text">0%</span>
@@ -581,7 +617,7 @@
       </div>
     </div>
 
-    <div class="card-box">
+    <div id="chart-section" class="card-box">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="fw-bold m-0">Distribución de Gastos</h6>
         <select id="chart-month-filter" class="form-select form-select-sm w-auto py-1" onchange="updateChart()"></select>
@@ -598,20 +634,28 @@
       </div>
     </div>
 
-    <h6 class="fw-bold text-muted mb-3 mt-4">ESTADO DE TARJETAS</h6>
-    <div id="home-card-list"></div>
+    <div id="cards-state-section">
+      <h6 class="fw-bold text-muted mb-3 mt-4">ESTADO DE TARJETAS</h6>
+      <div id="home-card-list"></div>
+    </div>
   </div>
 
   <!-- =======================
         ✅ TARJETAS
   ======================= -->
   <div id="view-cards" class="view-section p-3">
-    <h4 class="fw-black mb-4">Mis Tarjetas</h4>
-    <div class="text-muted small mb-2">* Ya están precargadas. Aquí solo editas corte/pago/límite/deuda/meta.</div>
-    <div id="manage-card-list"></div>
-    <button class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow mt-3" onclick="openCardModal()">
-      <i class="fas fa-pen me-2"></i> Editar Tarjeta
-    </button>
+    <div id="cards-placeholder" class="card-box">
+      <h4 class="fw-black mb-2">Tarjetas</h4>
+      <p class="text-muted small m-0">Próximamente habilitaremos el módulo de tarjetas en esta fase SaaS.</p>
+    </div>
+    <div id="cards-content" class="d-none">
+      <h4 class="fw-black mb-4">Mis Tarjetas</h4>
+      <div class="text-muted small mb-2">* Administra tus tarjetas y sus límites.</div>
+      <div id="manage-card-list"></div>
+      <button class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow mt-3" onclick="openCardModal()">
+        <i class="fas fa-pen me-2"></i> Editar Tarjeta
+      </button>
+    </div>
   </div>
 
   <!-- =======================
@@ -637,7 +681,12 @@
 
         <div class="mb-3">
           <label class="small fw-bold text-muted mb-1">Tarjeta / Cuenta</label>
-          <select id="t-card" class="form-select" required></select>
+          <div id="card-select-field">
+            <select id="t-card" class="form-select" required></select>
+          </div>
+          <div id="card-text-field" class="d-none">
+            <input type="text" id="t-card-name" class="form-control" placeholder="Cuenta principal" />
+          </div>
         </div>
 
         <div class="mb-3">
@@ -765,31 +814,37 @@
         ✅ METAS
   ======================= -->
   <div id="view-goals" class="view-section p-3">
-    <div class="goals-header">
-      <div>
-        <h4 class="fw-black m-0">Metas</h4>
-        <div class="text-muted small">Prioriza y ordena tus metas activas.</div>
-      </div>
-      <button class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="openGoalModal()">
-        <i class="fas fa-plus me-1"></i> Nueva meta
-      </button>
+    <div id="goals-placeholder" class="card-box">
+      <h4 class="fw-black mb-2">Metas</h4>
+      <p class="text-muted small m-0">Próximamente podrás crear y organizar metas financieras.</p>
     </div>
-    <div id="missing-index-goals-banner" class="card-box missing-index-banner d-none">
-      <div class="d-flex align-items-start gap-2">
-        <div class="banner-title">⚠️ Falta un índice de Firestore para cargar Metas.</div>
-      </div>
-      <div class="small mt-2">
-        No se pudieron cargar metas por índice faltante.
-        <a id="missing-index-goals-link" class="banner-link ms-1 d-none" target="_blank" rel="noopener noreferrer">Abrir índice</a>
-      </div>
-      <div class="d-flex flex-wrap gap-2 mt-3">
-        <button id="missing-index-goals-retry" class="btn btn-sm btn-warning" type="button" onclick="retryGoalsSubscription()">
-          Reintentar
+    <div id="goals-content" class="d-none">
+      <div class="goals-header">
+        <div>
+          <h4 class="fw-black m-0">Metas</h4>
+          <div class="text-muted small">Prioriza y ordena tus metas activas.</div>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="openGoalModal()">
+          <i class="fas fa-plus me-1"></i> Nueva meta
         </button>
       </div>
-      <div id="missing-index-goals-debug" class="small text-muted mt-2"></div>
+      <div id="missing-index-goals-banner" class="card-box missing-index-banner d-none">
+        <div class="d-flex align-items-start gap-2">
+          <div class="banner-title">⚠️ Falta un índice de Firestore para cargar Metas.</div>
+        </div>
+        <div class="small mt-2">
+          No se pudieron cargar metas por índice faltante.
+          <a id="missing-index-goals-link" class="banner-link ms-1 d-none" target="_blank" rel="noopener noreferrer">Abrir índice</a>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <button id="missing-index-goals-retry" class="btn btn-sm btn-warning" type="button" onclick="retryGoalsSubscription()">
+            Reintentar
+          </button>
+        </div>
+        <div id="missing-index-goals-debug" class="small text-muted mt-2"></div>
+      </div>
+      <div id="goals-list"><small class="text-muted">Cargando...</small></div>
     </div>
-    <div id="goals-list"><small class="text-muted">Cargando...</small></div>
   </div>
 
   <!-- =======================
@@ -982,8 +1037,8 @@
             <div class="mb-3">
               <label class="small text-muted fw-bold">Owner</label>
               <select id="goal-contribution-owner" class="form-select">
-                <option value="yair">Yair</option>
-                <option value="haru">Haru</option>
+                <option value="general">General</option>
+                <option value="equipo">Equipo</option>
               </select>
             </div>
             <div class="mb-3">
@@ -1026,11 +1081,10 @@
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="./config/firebase-config.js"></script>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-
     import {
-      getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
+      collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
       query, orderBy, writeBatch, Timestamp, enableIndexedDbPersistence, where, getDocs, getDoc, setDoc,
       serverTimestamp, increment, limit
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
@@ -1190,31 +1244,13 @@
       loaderRetryBtn.addEventListener("click", retryStartup);
     }
 
-    // Firebase init (PILOTO SaaS)
-    // (No dependemos de archivos externos; así evitamos que se "cuelen" configs del proyecto personal)
-    const firebaseConfig = {
-      apiKey: "AIzaSyDQ-8k7RxEnEaHiol44tItaf2WIWTGMaYk",
-      authDomain: "finanzas-pwa-saas-pilot.firebaseapp.com",
-      projectId: "finanzas-pwa-saas-pilot",
-      storageBucket: "finanzas-pwa-saas-pilot.firebasestorage.app",
-      messagingSenderId: "913318950195",
-      appId: "1:913318950195:web:dad75e9cc5061163103a46"
-    };
-
-    let app, db;
-    try{
-      app = initializeApp(firebaseConfig);
-      // Exponemos solo para debugging (opcional)
-      window.firebaseApp = app;
-      db = getFirestore(app);
-    }catch(e){
-      showStartupError("Error inicializando Firebase: " + (e?.message || e), { canRetry: false });
+    const db = window.db;
+    if(!db){
+      showStartupError("Firestore no inicializado", { canRetry: false });
+      throw new Error("Firestore no inicializado");
     }
 
-    if(db){
-      enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
-      console.log("Firebase project:", firebaseConfig.projectId);
-    }
+    enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
 // =========================
     // 🔔 PUSH (por ahora placeholder)
     // =========================
@@ -1229,42 +1265,28 @@
 
     // Presets
     const PRESET_CARDS = [
-      { name: "Like u", owner: "yair" },
-      { name: "Free", owner: "yair" },
-      { name: "Costco", owner: "yair" },
-      { name: "Mercado Pago", owner: "yair" },
-      { name: "Oro", owner: "haru" },
-      { name: "Simplicity", owner: "haru" },
-      { name: "BBVA", owner: "haru" },
-      { name: "Liverpool", owner: "haru" },
-      { name: "Palacio", owner: "haru" },
-      { name: "Pago c/ Transferencia", owner: "both" }
+      { name: "Cuenta principal", owner: "general" },
+      { name: "Cuenta secundaria", owner: "general" },
+      { name: "Cuenta compartida", owner: "equipo" }
     ];
 
     // Owner
     const OWNER_KEY="fy_owner";
     const SCOPE_FILTER_KEY="fy_scope_filter";
-    let OWNER = localStorage.getItem(OWNER_KEY) || "yair";
+    let OWNER = localStorage.getItem(OWNER_KEY) || "general";
     const ownerSelect = document.getElementById("owner-select");
-    ownerSelect.value = OWNER;
+    if(ownerSelect) ownerSelect.value = OWNER;
 
     const getActiveScopeFilter = () => localStorage.getItem(SCOPE_FILTER_KEY) || "all";
 
-    ownerSelect.addEventListener("change", async ()=>{
-      OWNER = ownerSelect.value;
-      localStorage.setItem(OWNER_KEY, OWNER);
-      setState({ owner: OWNER });
-      dataState.owner = OWNER;
-      invalidateCategoryAggCacheForOwner(OWNER);
-      startLoader();
-      setLoaderMsg("Cambiando usuario...");
-      await seedPresetCards();
-      resubscribeAll();
-      periodDataCache = { owner: null, scope: null, data: null };
-      cancelSimulation();
-      refreshAll({ owner: OWNER, force: true, source: "owner-change" });
-      updateMonthlyFootprint({ force: true });
-    });
+    if(ownerSelect){
+      ownerSelect.addEventListener("change", ()=>{
+        OWNER = ownerSelect.value;
+        localStorage.setItem(OWNER_KEY, OWNER);
+        setState({ owner: OWNER });
+        dataState.owner = OWNER;
+      });
+    }
 
     // State
     let cards=[], trans=[], goals=[];
@@ -1300,17 +1322,24 @@
     let msiChartInstance=null;
 
     const FEATURES = {
-      dashboard: true,
-      alerts: true,
-      insights: true,
+      dashboard: false,
+      alerts: false,
+      insights: false,
       offlineUx: true,
-      timeline: true,
-      prediction: true,
-      simulator: true,
+      timeline: false,
+      prediction: false,
+      simulator: false,
       gestures: true,
       darkMode: true,
-      coupleMode: true,
-      monthlyFootprint: true
+      coupleMode: false,
+      monthlyFootprint: false,
+      charts: false,
+      cards: false,
+      goals: false
+    };
+
+    const DEV_FEATURES = {
+      demoSeed: false
     };
 
     let appState = {
@@ -1442,6 +1471,24 @@
       toggle("simulation-section", FEATURES.simulator);
       toggle("monthly-footprint-section", FEATURES.monthlyFootprint);
       toggle("scope-filter-section", FEATURES.coupleMode);
+      toggle("payment-monitor-section", FEATURES.cards);
+      toggle("utilization-section", FEATURES.cards);
+      toggle("chart-section", FEATURES.charts);
+      toggle("cards-state-section", FEATURES.cards);
+      toggle("cards-content", FEATURES.cards);
+      toggle("cards-placeholder", !FEATURES.cards);
+      toggle("card-select-field", FEATURES.cards);
+      toggle("card-text-field", !FEATURES.cards);
+      toggle("nav-cards", FEATURES.cards);
+      toggle("nav-msi", FEATURES.cards);
+      toggle("nav-goals", FEATURES.goals);
+      toggle("view-msi", FEATURES.cards);
+      toggle("goals-content", FEATURES.goals);
+      toggle("goals-placeholder", !FEATURES.goals);
+      toggle("placeholder-alerts", !FEATURES.alerts);
+      toggle("placeholder-goals", !FEATURES.goals);
+      toggle("dev-seed-section", DEV_FEATURES.demoSeed);
+      toggle("missing-index-banner", FEATURES.dashboard || FEATURES.charts || FEATURES.prediction || FEATURES.insights);
     };
 
     function renderConnectivityBadge(isOnline){
@@ -1505,11 +1552,13 @@
     }
 
     async function refreshAfterReconnect(){
-      await refreshAll({ owner: OWNER, force: true, source: "reconnect" });
-      updateAlerts({ force: true });
-      updateMonthlyFootprint({ force: true });
+      if(FEATURES.dashboard || FEATURES.prediction || FEATURES.insights || FEATURES.simulator){
+        await refreshAll({ owner: OWNER, force: true, source: "reconnect" });
+      }
+      if(FEATURES.alerts) updateAlerts({ force: true });
+      if(FEATURES.monthlyFootprint) updateMonthlyFootprint({ force: true });
       renderHistory();
-      updateChart();
+      if(FEATURES.charts) updateChart();
     }
 
     function setupConnectivityListeners(){
@@ -2490,6 +2539,10 @@
     }
 
     async function refreshAll({ owner, force = false, source = "refreshAll" } = {}) {
+      if(!FEATURES.dashboard && !FEATURES.insights && !FEATURES.prediction && !FEATURES.simulator){
+        setDataLoading(false, `${source}:skip`);
+        return;
+      }
       const resolvedOwner = getActiveOwner(owner || dataState.owner);
       if(!resolvedOwner){
         console.warn("refreshAll: owner indefinido, se mantiene último owner válido.");
@@ -2872,7 +2925,7 @@
     const expensesCache = new Map();
 
     const getActiveOwner = (owner) =>
-      owner || OWNER || dataState.owner || localStorage.getItem(OWNER_KEY) || "yair";
+      owner || OWNER || dataState.owner || localStorage.getItem(OWNER_KEY) || "general";
 
     const getCacheKey = ({ owner, periodKey, start, end }) => {
       const s = toDate(start).getTime();
@@ -3081,8 +3134,8 @@
       if(vid.includes('goals')) document.getElementById('nav-goals').classList.add('active');
 
       // render MSI cuando entras
-      if(vid === 'view-msi') renderMsi();
-      if(vid === 'view-goals') renderGoals();
+      if(vid === 'view-msi' && FEATURES.cards) renderMsi();
+      if(vid === 'view-goals' && FEATURES.goals) renderGoals();
     };
 
     const THEME_KEY = "themeMode";
@@ -3110,8 +3163,8 @@
       if(icon){
         icon.className = getEffectiveTheme(mode) === "dark" ? "fas fa-moon" : "fas fa-sun";
       }
-      updateChart();
-      renderMsi();
+      if(FEATURES.charts) updateChart();
+      if(FEATURES.cards) renderMsi();
     };
 
     const isProbablyIOS = () => {
@@ -3155,7 +3208,7 @@
       setSyncStatus("syncing", { silent: true });
       await refreshAfterReconnect();
       setSyncStatus("synced", { silent: true });
-      updateMonthlyFootprint({ force: true });
+      if(FEATURES.monthlyFootprint) updateMonthlyFootprint({ force: true });
     };
 
     const quickSheet = document.getElementById("quick-sheet");
@@ -3234,10 +3287,10 @@
       if(!FEATURES.coupleMode) return;
       setActiveScopeFilter(value);
       invalidateCategoryAggCacheForOwner(OWNER);
-      updateAlerts({ force: true });
-      updateMonthlyFootprint({ force: true });
+      if(FEATURES.alerts) updateAlerts({ force: true });
+      if(FEATURES.monthlyFootprint) updateMonthlyFootprint({ force: true });
       renderHistory();
-      updateChart();
+      if(FEATURES.charts) updateChart();
     };
 
     // Filters
@@ -3305,21 +3358,22 @@
       renderHistory();
     };
 
-    // Seed preset cards (NO sobreescribe tus datos)
+    // Seed preset cards (MANUAL, solo desarrollo)
     async function seedPresetCards(){
+      const seedButton = document.getElementById("load-demo-btn");
       try{
-        setLoaderMsg("Verificando tarjetas precargadas...");
+        setLoading(seedButton, true, { label: "Cargando..." });
         const existingSnap = await getDocs(query(collection(db,"cards")));
-        const existingByOwner={ yair:new Set(), haru:new Set(), both:new Set() };
+        const existingByOwner = { general: new Set(), equipo: new Set() };
 
         existingSnap.forEach(d=>{
           const data=d.data();
           const name=(data.name||"").toLowerCase().trim();
-          const owner=(data.owner||"both");
+          const owner=(data.owner||"general");
           if(existingByOwner[owner]) existingByOwner[owner].add(name);
         });
 
-        const need=PRESET_CARDS.filter(c=>c.owner===OWNER || c.owner==="both");
+        const need=PRESET_CARDS.filter(c=>c.owner===OWNER);
         for(const c of need){
           const nm=c.name.toLowerCase();
           const bucket=existingByOwner[c.owner]||new Set();
@@ -3332,22 +3386,36 @@
             bucket.add(nm);
           }
         }
+        showToast("Demo cargada manualmente.", { tone: "success", duration: 2400 });
       }catch(e){
         console.error("Seed preset cards error:", e);
-        showToast("Aviso: no se pudieron verificar/crear tarjetas preset.", { tone: "warning", duration: 3200 });
+        showToast("Aviso: no se pudieron cargar tarjetas demo.", { tone: "warning", duration: 3200 });
         haptic("warn");
+      }finally{
+        setLoading(seedButton, false);
       }
+    }
+
+    const demoSeedButton = document.getElementById("load-demo-btn");
+    if(demoSeedButton){
+      demoSeedButton.addEventListener("click", () => {
+        const demoSeedEnabled = typeof DEV_FEATURES !== "undefined" && DEV_FEATURES.demoSeed;
+        if(!demoSeedEnabled) return;
+        seedPresetCards();
+      });
     }
 
     // Subscribe helpers
     function resubscribeAll(){
       unsubscribeAll();
-      subscribeCards();
+      if(FEATURES.cards) subscribeCards();
       subscribeTrans();
-      subscribeGoals();
+      if(FEATURES.goals) subscribeGoals();
       resetForm();
-      refreshAll({ owner: OWNER, force: true, source: "resubscribe" });
-      updateMonthlyFootprint({ force: true });
+      if(FEATURES.dashboard || FEATURES.prediction || FEATURES.insights || FEATURES.simulator){
+        refreshAll({ owner: OWNER, force: true, source: "resubscribe" });
+      }
+      if(FEATURES.monthlyFootprint) updateMonthlyFootprint({ force: true });
     }
 
     // Cards subscribe (front filter)
@@ -3376,8 +3444,8 @@
         const prevSel=select.value;
 
         select.innerHTML='';
-        const optG_Y=document.createElement('optgroup'); optG_Y.label="Tarjetas de Yair";
-        const optG_H=document.createElement('optgroup'); optG_H.label="Tarjetas de Haru";
+        const optG_Y=document.createElement('optgroup'); optG_Y.label="Tarjetas generales";
+        const optG_H=document.createElement('optgroup'); optG_H.label="Tarjetas de equipo";
         const optG_B=document.createElement('optgroup'); optG_B.label="Compartidas";
 
         temp.sort((a,b)=>(a.name||"").localeCompare(b.name||"","es"));
@@ -3428,8 +3496,8 @@
           opt.value=c.id;
           opt.textContent=c.name;
 
-          if(c.owner==="yair") optG_Y.appendChild(opt);
-          else if(c.owner==="haru") optG_H.appendChild(opt);
+          if(c.owner==="general") optG_Y.appendChild(opt);
+          else if(c.owner==="equipo") optG_H.appendChild(opt);
           else optG_B.appendChild(opt);
         });
 
@@ -3466,7 +3534,7 @@
     // Trans subscribe (owner)
     function subscribeTrans(){
       setLoaderMsg("Cargando movimientos...");
-      const qTrans=query(collection(db,"expenses"), where("owner","==",OWNER), orderBy("date","desc"));
+      const qTrans=query(collection(db,"expenses"), orderBy("date","desc"), limit(20));
       let firstSnapshot = true;
       unsubTrans = onSnapshot(qTrans, { includeMetadataChanges: true }, (snap)=>{
         if(firstSnapshot){
@@ -3484,12 +3552,51 @@
         handlePendingWrites(snap.metadata.hasPendingWrites);
         fillHistFilters();
         emit("DATA_LOADED", { owner: OWNER, count: trans.length });
+        renderRecentMovements();
+        updateEmptyState();
 
         if(privacy) togglePrivacy();
       }, (err)=>{
         console.error("Expenses snapshot error:", err);
         showStartupError(`Error leyendo movimientos: ${getFirestoreErrorMessage(err)}`);
       });
+    }
+
+    function updateEmptyState(){
+      const emptyState = document.getElementById("empty-state");
+      const recentSection = document.getElementById("recent-movements");
+      if(!emptyState || !recentSection) return;
+      const hasData = trans.length > 0;
+      emptyState.classList.toggle("d-none", hasData);
+      recentSection.classList.toggle("d-none", !hasData);
+    }
+
+    function renderRecentMovements(){
+      const listEl = document.getElementById("recent-movements-list");
+      if(!listEl) return;
+      if(!trans.length){
+        listEl.innerHTML = "Sin movimientos aún.";
+        return;
+      }
+      listEl.innerHTML = trans.slice(0, 20).map((item) => {
+        const amount = safeNumber(item?.amount);
+        const amountClass = item?.type === "payment" ? "text-success" : "text-danger";
+        const label = item?.concept || item?.category || "Movimiento";
+        const date = toDate(item?.date);
+        const dateLabel = Number.isNaN(date.getTime())
+          ? "Fecha no disponible"
+          : date.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+        return `
+          <div class="list-item">
+            <div>
+              <div class="fw-bold">${label}</div>
+              <div class="text-muted small">${dateLabel}</div>
+            </div>
+            <div class="fw-bold ${amountClass} sensitive-data">${formatCurrency(amount)}</div>
+          </div>
+        `;
+      }).join("");
+      if(privacy) togglePrivacy();
     }
 
     // Goals subscribe + render
@@ -3533,7 +3640,7 @@
 
     const getLocalDateInputValue = (date = new Date()) => toLocalYYYYMMDD(date);
 
-    const formatGoalOwner = (owner) => owner === "haru" ? "Haru" : "Yair";
+    const formatGoalOwner = (owner) => owner === "equipo" ? "Equipo" : "General";
 
     const buildGoalsQuery = () => {
       const whereFields = [
@@ -3844,7 +3951,7 @@
       const noteInput = document.getElementById("goal-contribution-note");
       if(idInput) idInput.value = goalId;
       if(amountInput) amountInput.value = "";
-      if(ownerInput) ownerInput.value = OWNER || "yair";
+      if(ownerInput) ownerInput.value = OWNER || "general";
       if(dateInput) dateInput.value = getLocalDateInputValue();
       if(noteInput) noteInput.value = "";
       if(!goalContributionModal){
@@ -4924,6 +5031,7 @@
     };
 
     window.updateChart = () => {
+      if(!FEATURES.charts) return;
       scheduleChartRender();
     };
 
@@ -5206,9 +5314,10 @@
 
       const type=document.querySelector('input[name="ttype"]:checked')?.value;
       const amt=parseFloat(document.getElementById('t-amount').value);
-      const cid=document.getElementById('t-card').value;
+      const cid=FEATURES.cards ? document.getElementById('t-card').value : null;
+      const cardNameInput = document.getElementById('t-card-name')?.value?.trim();
       const dateValue = document.getElementById('t-date').value;
-      if(!type || !cid || !dateValue || !Number.isFinite(amt) || amt <= 0){
+      if(!type || !dateValue || !Number.isFinite(amt) || amt <= 0 || (FEATURES.cards && !cid)){
         showToast("Completa los datos requeridos para guardar.", { tone: "warning", duration: 2400 });
         haptic("error");
         return;
@@ -5218,22 +5327,25 @@
 
       try{
         const tid=document.getElementById('trans-id').value;
-        const cObj=cards.find(c=>c.id===cid);
-        if(!cObj) throw new Error("Tarjeta no encontrada");
+        const cObj = FEATURES.cards ? cards.find(c=>c.id===cid) : null;
+        if(FEATURES.cards && !cObj) throw new Error("Tarjeta no encontrada");
         const previousTrans = tid ? trans.find(t=>t.id===tid) : null;
 
-        let newBal=parseFloat(cObj.balance||0);
-        const batch=writeBatch(db);
-
         // Reversión si es edición
-        if(tid){
-          if(previousTrans && previousTrans.cardId===cid){
-            if(previousTrans.type==='expense') newBal -= previousTrans.amount;
-            else newBal += previousTrans.amount;
+        let newBal = null;
+        let batch = null;
+        if(FEATURES.cards){
+          newBal = parseFloat(cObj.balance||0);
+          batch = writeBatch(db);
+          if(tid){
+            if(previousTrans && previousTrans.cardId===cid){
+              if(previousTrans.type==='expense') newBal -= previousTrans.amount;
+              else newBal += previousTrans.amount;
+            }
           }
+          if(type==='expense') newBal += amt;
+          else newBal -= amt;
         }
-        if(type==='expense') newBal += amt;
-        else newBal -= amt;
 
         // MSI payload
         const isMsi = (type === 'expense') && document.getElementById('t-msi').checked;
@@ -5250,8 +5362,8 @@
           owner: OWNER,
           amount: amt,
           type,
-          cardId: cid,
-          cardName: cObj.name,
+          cardId: FEATURES.cards ? cid : null,
+          cardName: FEATURES.cards ? cObj.name : (cardNameInput || null),
           concept: document.getElementById('t-concept').value,
           category: document.getElementById('t-cat').value,
           date: Timestamp.fromDate(parseLocalYYYYMMDDToDate(document.getElementById('t-date').value) || new Date()),
@@ -5263,12 +5375,15 @@
           msiStart: msiStart
         };
 
-        const cardRef=doc(db,"cards",cid);
-
         if(tid){
-          batch.update(doc(db,"expenses",tid), payload);
-          batch.update(cardRef, { balance:newBal });
-          await batch.commit();
+          if(FEATURES.cards && batch){
+            const cardRef=doc(db,"cards",cid);
+            batch.update(doc(db,"expenses",tid), payload);
+            batch.update(cardRef, { balance:newBal });
+            await batch.commit();
+          }else{
+            await updateDoc(doc(db,"expenses",tid), payload);
+          }
 
           await sheetsSend({
             entity: "transaction",
@@ -5280,7 +5395,10 @@
 
         }else{
           const createdRef = await addDoc(collection(db,"expenses"), payload);
-          await updateDoc(cardRef, { balance:newBal });
+          if(FEATURES.cards){
+            const cardRef=doc(db,"cards",cid);
+            await updateDoc(cardRef, { balance:newBal });
+          }
 
           await sheetsSend({
             entity: "transaction",
@@ -5316,8 +5434,10 @@
         }
 
         invalidateCacheForOwner(OWNER);
-        refreshAll({ owner: OWNER, force: true, source: "save-expense" });
-        updateAlerts({ force: true });
+        if(FEATURES.dashboard || FEATURES.prediction || FEATURES.insights || FEATURES.simulator){
+          refreshAll({ owner: OWNER, force: true, source: "save-expense" });
+        }
+        if(FEATURES.alerts) updateAlerts({ force: true });
         cancelSimulation();
         resetForm();
         nav('view-home');
@@ -5337,7 +5457,12 @@
 
       document.getElementById('trans-id').value=id;
       document.getElementById('t-amount').value=t.amount;
-      document.getElementById('t-card').value=t.cardId;
+      if(FEATURES.cards){
+        document.getElementById('t-card').value=t.cardId;
+      }else{
+        const cardNameInput = document.getElementById('t-card-name');
+        if(cardNameInput) cardNameInput.value = t.cardName || "";
+      }
       document.getElementById('t-concept').value=t.concept;
       const transDate = t.date?.toDate ? t.date.toDate() : t.date;
       document.getElementById('t-date').value = toLocalYYYYMMDD(transDate);
@@ -5379,20 +5504,24 @@
       const t=trans.find(x=>x.id===id);
       if(!t) return;
 
-      const cObj=cards.find(c=>c.id===t.cardId);
-      if(!cObj){
-        showToast("Tarjeta no encontrada para recalcular saldo.", { tone: "warning", duration: 2400 });
-        return;
+      if(FEATURES.cards){
+        const cObj=cards.find(c=>c.id===t.cardId);
+        if(!cObj){
+          showToast("Tarjeta no encontrada para recalcular saldo.", { tone: "warning", duration: 2400 });
+          return;
+        }
+
+        let newBal=parseFloat(cObj.balance||0);
+        if(t.type==='expense') newBal -= t.amount;
+        else newBal += t.amount;
+
+        const batch=writeBatch(db);
+        batch.update(doc(db,"cards",t.cardId), { balance:newBal });
+        batch.delete(doc(db,"expenses",id));
+        await batch.commit();
+      }else{
+        await deleteDoc(doc(db,"expenses",id));
       }
-
-      let newBal=parseFloat(cObj.balance||0);
-      if(t.type==='expense') newBal -= t.amount;
-      else newBal += t.amount;
-
-      const batch=writeBatch(db);
-      batch.update(doc(db,"cards",t.cardId), { balance:newBal });
-      batch.delete(doc(db,"expenses",id));
-      await batch.commit();
 
       await sheetsSend({
         entity: "transaction",
@@ -5407,8 +5536,10 @@
       }
 
       invalidateCacheForOwner(OWNER);
-      refreshAll({ owner: OWNER, force: true, source: "delete-expense" });
-      updateAlerts({ force: true });
+      if(FEATURES.dashboard || FEATURES.prediction || FEATURES.insights || FEATURES.simulator){
+        refreshAll({ owner: OWNER, force: true, source: "delete-expense" });
+      }
+      if(FEATURES.alerts) updateAlerts({ force: true });
       cancelSimulation();
       resetForm();
       nav('view-hist');
@@ -5453,26 +5584,32 @@
 
     on("DATA_LOADED", () => {
       invalidateCategoryAggCacheForOwner(OWNER);
-      refreshAll({ owner: OWNER, force: true, source: "snapshot" });
-      updateAlerts({ force: true });
-      updateMonthlyFootprint({ force: true });
+      if(FEATURES.dashboard || FEATURES.prediction || FEATURES.insights || FEATURES.simulator){
+        refreshAll({ owner: OWNER, force: true, source: "snapshot" });
+      }
+      if(FEATURES.alerts) updateAlerts({ force: true });
+      if(FEATURES.monthlyFootprint) updateMonthlyFootprint({ force: true });
       if(FEATURES.timeline){
         renderHistory();
       }
-      updateChart();
-      updatePaymentMonitor();
-      renderMsi();
+      if(FEATURES.charts) updateChart();
+      if(FEATURES.cards){
+        updatePaymentMonitor();
+        renderMsi();
+      }
     });
 
     on("FILTER_CHANGED", () => {
       invalidateCategoryAggCacheForOwner(OWNER);
-      refreshAll({ owner: OWNER, force: true, source: "filter-change" });
-      updateAlerts({ force: true });
-      updateMonthlyFootprint({ force: true });
+      if(FEATURES.dashboard || FEATURES.prediction || FEATURES.insights || FEATURES.simulator){
+        refreshAll({ owner: OWNER, force: true, source: "filter-change" });
+      }
+      if(FEATURES.alerts) updateAlerts({ force: true });
+      if(FEATURES.monthlyFootprint) updateMonthlyFootprint({ force: true });
       if(FEATURES.timeline){
         renderHistory();
       }
-      updateChart();
+      if(FEATURES.charts) updateChart();
     });
 
     // Init
@@ -5482,11 +5619,11 @@
     resetForm();
     uiToggleScope();
     applyFeatureVisibility();
+    updateEmptyState();
     syncScopeFilterUI();
-    setupGoalEvents();
+    if(FEATURES.goals) setupGoalEvents();
     document.body.classList.toggle('ios-fallback', isProbablyIOS() || !window.PointerEvent);
     startLoader();
-    await seedPresetCards();
     resubscribeAll();
   </script>
 </body>
