@@ -1026,9 +1026,9 @@
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="./config/firebase-config.js"></script>
-
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+
     import {
       getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
       query, orderBy, writeBatch, Timestamp, enableIndexedDbPersistence, where, getDocs, getDoc, setDoc,
@@ -1190,33 +1190,32 @@
       loaderRetryBtn.addEventListener("click", retryStartup);
     }
 
-    // Firestore init
-    let app, db;
-    let hasLoggedProjectId = false;
-    const logProjectIdOnce = () => {
-      if(hasLoggedProjectId) return;
-      if(window.firebaseApp?.options?.projectId){
-        console.log("Firebase project:", window.firebaseApp.options.projectId);
-      }
-      hasLoggedProjectId = true;
+    // Firebase init (PILOTO SaaS)
+    // (No dependemos de archivos externos; así evitamos que se "cuelen" configs del proyecto personal)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQ-8k7RxEnEaHiol44tItaf2WIWTGMaYk",
+      authDomain: "finanzas-pwa-saas-pilot.firebaseapp.com",
+      projectId: "finanzas-pwa-saas-pilot",
+      storageBucket: "finanzas-pwa-saas-pilot.firebasestorage.app",
+      messagingSenderId: "913318950195",
+      appId: "1:913318950195:web:dad75e9cc5061163103a46"
     };
-    if(!window.firebaseApp){
-      showStartupError("Firebase no inicializado. Revisa config/firebase-config.js", { canRetry: false });
-    }else{
-      try {
-        app = window.firebaseApp;
-        db = getFirestore(app);
-      }
-      catch(e){
-        showStartupError("Error inicializando Firebase: "+(e.message||e), { canRetry: false });
-      }
-    }
-    if(db){
-      enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
-      logProjectIdOnce();
+
+    let app, db;
+    try{
+      app = initializeApp(firebaseConfig);
+      // Exponemos solo para debugging (opcional)
+      window.firebaseApp = app;
+      db = getFirestore(app);
+    }catch(e){
+      showStartupError("Error inicializando Firebase: " + (e?.message || e), { canRetry: false });
     }
 
-    // =========================
+    if(db){
+      enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
+      console.log("Firebase project:", firebaseConfig.projectId);
+    }
+// =========================
     // 🔔 PUSH (por ahora placeholder)
     // =========================
     window.enablePush = () => {
