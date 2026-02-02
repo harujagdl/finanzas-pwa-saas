@@ -467,11 +467,10 @@
     </div>
 
     <section id="empty-state" class="card-box d-none">
-      <h6 class="fw-bold m-0">Sin datos</h6>
-      <p class="text-muted small mt-2">Aún no hay movimientos registrados. Empieza con tu primer registro.</p>
+      <h6 class="fw-bold m-0">Aún no tienes movimientos</h6>
+      <p class="text-muted small mt-2">Empieza creando tu primer movimiento para ver tus métricas.</p>
       <div class="d-grid gap-2 mt-3">
-        <button class="btn btn-primary" type="button" onclick="nav('view-add')">Agregar movimiento</button>
-        <button class="btn btn-outline-secondary" type="button" onclick="nav('view-add')">Crear primer registro</button>
+        <button class="btn btn-primary" type="button" onclick="nav('view-add')">Agregar primer movimiento</button>
       </div>
     </section>
 
@@ -1081,13 +1080,50 @@
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="./config/firebase-config.js"></script>
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import {
       collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
       query, orderBy, writeBatch, Timestamp, enableIndexedDbPersistence, where, getDocs, getDoc, setDoc,
-      serverTimestamp, increment, limit
+      serverTimestamp, increment, limit, getFirestore
     } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQ-8k7RxEnEaHiol44tItaf2WIWTGMaYk",
+      authDomain: "finanzas-pwa-saas-pilot.firebaseapp.com",
+      projectId: "finanzas-pwa-saas-pilot",
+      storageBucket: "finanzas-pwa-saas-pilot.firebasestorage.app",
+      messagingSenderId: "913318950195",
+      appId: "1:913318950195:web:dad75e9cc5061163103a46"
+    };
+
+    function showBlockingInitError(message){
+      const loaderEl = document.getElementById("loader");
+      const loaderError = document.getElementById("loader-error");
+      const loaderErrorMsg = document.getElementById("loader-error-msg");
+      const loaderRetryBtn = document.getElementById("loader-retry");
+      if(loaderEl) loaderEl.style.display = "flex";
+      if(loaderErrorMsg) loaderErrorMsg.textContent = message;
+      if(loaderRetryBtn) loaderRetryBtn.classList.add("d-none");
+      if(loaderError) loaderError.classList.remove("d-none");
+    }
+
+    function initFirebase(){
+      try{
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.firebaseApp = app;
+        window.db = db;
+        console.info("Firestore inicializado correctamente");
+        return { app, db };
+      }catch(err){
+        showBlockingInitError("No se pudo inicializar Firestore. Revisa la configuración y recarga.");
+        console.warn("Firestore init error:", err?.message || err);
+        return { app: null, db: null };
+      }
+    }
+
+    const { app: firebaseApp, db } = initFirebase();
 
     // =========================
     // ✅ CONFIG SHEETS
@@ -1184,7 +1220,7 @@
     }
 
     function showStartupError(message, { canRetry = true } = {}){
-      console.error(message);
+      console.warn(message);
       if(loaderEl) loaderEl.style.display='flex';
       if(loaderErrorMsg){
         loaderErrorMsg.textContent = message;
@@ -1244,13 +1280,17 @@
       loaderRetryBtn.addEventListener("click", retryStartup);
     }
 
-    const db = window.db;
-    if(!db){
-      showStartupError("Firestore no inicializado", { canRetry: false });
-      throw new Error("Firestore no inicializado");
+    function bootApp(){
+      if(!db){
+        showStartupError("Firestore no está disponible. Intenta recargar más tarde.", { canRetry: false });
+        return;
+      }
+      enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
+      setupConnectivityListeners();
+      setSyncStatus(appState.isOnline ? "synced" : "local", { silent: true });
+      startLoader();
+      resubscribeAll();
     }
-
-    enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
 // =========================
     // 🔔 PUSH (por ahora placeholder)
     // =========================
@@ -1580,9 +1620,6 @@
         emit("OFFLINE");
       });
     }
-
-    setupConnectivityListeners();
-    setSyncStatus(appState.isOnline ? "synced" : "local", { silent: true });
 
     const formatMoney = (v) => '$' + parseFloat(v||0).toLocaleString('en-US',{minimumFractionDigits:2});
 
@@ -5623,8 +5660,7 @@
     syncScopeFilterUI();
     if(FEATURES.goals) setupGoalEvents();
     document.body.classList.toggle('ios-fallback', isProbablyIOS() || !window.PointerEvent);
-    startLoader();
-    resubscribeAll();
+    bootApp();
   </script>
 </body>
 </html>
