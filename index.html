@@ -1026,9 +1026,9 @@
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="./config/firebase-config.js"></script>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
       query, orderBy, writeBatch, Timestamp, enableIndexedDbPersistence, where, getDocs, getDoc, setDoc,
@@ -1069,17 +1069,6 @@
         catch (e) { console.log("SW no registrado (ok):", e?.message || e); }
       });
     }
-
-    // ✅ Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDTDnao-bkiC4yxmV-mGryBmmvlWOvMIpg",
-      authDomain: "finanzas-yayos-1738b.firebaseapp.com",
-      projectId: "finanzas-yayos-1738b",
-      storageBucket: "finanzas-yayos-1738b.firebasestorage.app",
-      messagingSenderId: "821972200592",
-      appId: "1:821972200592:web:de809935c39a319ff4bc15",
-      measurementId: "G-FL2NL2H5SR"
-    };
 
     // Loader
     const loaderEl = document.getElementById('loader');
@@ -1206,15 +1195,26 @@
     let hasLoggedProjectId = false;
     const logProjectIdOnce = () => {
       if(hasLoggedProjectId) return;
-      if(firebaseConfig?.projectId){
-        console.info("Firestore projectId:", firebaseConfig.projectId);
+      if(window.firebaseApp?.options?.projectId){
+        console.log("Firebase project:", window.firebaseApp.options.projectId);
       }
       hasLoggedProjectId = true;
     };
-    try { app = initializeApp(firebaseConfig); db = getFirestore(app); }
-    catch(e){ showStartupError("Error inicializando Firebase: "+(e.message||e), { canRetry: false }); }
-    enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
-    logProjectIdOnce();
+    if(!window.firebaseApp){
+      showStartupError("Firebase no inicializado. Revisa config/firebase-config.js", { canRetry: false });
+    }else{
+      try {
+        app = window.firebaseApp;
+        db = getFirestore(app);
+      }
+      catch(e){
+        showStartupError("Error inicializando Firebase: "+(e.message||e), { canRetry: false });
+      }
+    }
+    if(db){
+      enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
+      logProjectIdOnce();
+    }
 
     // =========================
     // 🔔 PUSH (por ahora placeholder)
