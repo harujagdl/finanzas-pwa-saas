@@ -1,7 +1,11 @@
-const CACHE_VERSION = "v1.0.0"; // actualizar en cada deploy
-const STATIC_CACHE = `static-${CACHE_VERSION}`;
+const CACHE_VERSION = "pilot-1"; // incrementar en cada deploy del piloto
+const STATIC_CACHE = `finanzas-pwa-saas-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
+  "/",
+  "/index.html",
   "/manifest.json",
+  "/sw.js",
+  "/config/firebase-config.js",
   "/icons/icon-192.png",
   "/icons/icon-512.png"
 ];
@@ -89,12 +93,12 @@ importScripts("https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"
 importScripts("https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js");
 
 firebase.initializeApp({
-  apiKey: "AIzaSyDTDnao-bkiC4yxmV-mGryBmmvlWOvMIpg",
-  authDomain: "finanzas-yayos-1738b.firebaseapp.com",
-  projectId: "finanzas-yayos-1738b",
-  storageBucket: "finanzas-yayos-1738b.firebasestorage.app",
-  messagingSenderId: "821972200592",
-  appId: "1:821972200592:web:de809935c39a319ff4bc15"
+  apiKey: "REEMPLAZAR_API_KEY",
+  authDomain: "finanzas-pwa-saas-pilot.firebaseapp.com",
+  projectId: "finanzas-pwa-saas-pilot",
+  storageBucket: "finanzas-pwa-saas-pilot.appspot.com",
+  messagingSenderId: "REEMPLAZAR_MESSAGING_SENDER_ID",
+  appId: "REEMPLAZAR_APP_ID"
 });
 
 const messaging = firebase.messaging();
@@ -131,8 +135,8 @@ self.addEventListener("notificationclick", (event) => {
 // =========================
 // 📌 Documentación rápida
 // =========================
-// CACHE_VERSION: v1.0.0
-// Static cache: /manifest.json, /icons/icon-192.png, /icons/icon-512.png
+// CACHE_VERSION: pilot-1
+// Static cache: /, /index.html, /manifest.json, /sw.js, /config/firebase-config.js, /icons/...
 // Validación:
 // 1) Abrir PWA instalada
 // 2) Hacer deploy con cambio visible y subir CACHE_VERSION

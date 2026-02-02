@@ -395,6 +395,42 @@
     </div>
   </div>
 
+  <div id="config-missing" class="p-3 d-none">
+    <div class="card-box missing-index-banner">
+      <div class="banner-title mb-2">⚠️ Falta la configuración de Firebase</div>
+      <p class="small text-muted mb-2">
+        Crea <strong>config/firebase-config.js</strong> con la configuración web del proyecto piloto.
+      </p>
+      <p class="small text-muted mb-0">
+        Puedes copiar <strong>config/firebase-config.example.js</strong> y completar los valores.
+      </p>
+    </div>
+  </div>
+
+  <section id="auth-screen" class="p-3 d-none">
+    <div class="card-box">
+      <h5 class="fw-black mb-2">Acceso al piloto</h5>
+      <p class="text-muted small mb-4">Inicia sesión o crea tu cuenta para usar la app.</p>
+      <form id="auth-form" class="d-grid gap-3">
+        <div>
+          <label class="form-label small fw-bold" for="auth-email">Email</label>
+          <input id="auth-email" type="email" class="form-control" autocomplete="email" required />
+        </div>
+        <div>
+          <label class="form-label small fw-bold" for="auth-password">Contraseña</label>
+          <input id="auth-password" type="password" class="form-control" autocomplete="current-password" required />
+        </div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary" id="btn-auth-login" type="button">Entrar</button>
+          <button class="btn btn-outline-primary" id="btn-auth-register" type="button">Crear cuenta</button>
+          <button class="btn btn-outline-secondary d-none" id="btn-auth-logout" type="button">Salir</button>
+        </div>
+        <div id="auth-error" class="small text-danger d-none"></div>
+      </form>
+    </div>
+  </section>
+
+  <div id="app-root" class="d-none">
   <!-- =======================
         ✅ INICIO
   ======================= -->
@@ -443,6 +479,24 @@
           <i class="fas fa-eye" id="eye-icon"></i>
         </button>
       </div>
+    </div>
+
+    <div id="plan-banner" class="card-box mb-3">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <div class="kpi-label">Plan</div>
+          <div class="fw-black" id="plan-badge-label">FREE</div>
+          <div class="small text-muted" id="plan-limits">Plan GRATIS: 30 movimientos/mes • 1 meta</div>
+          <div class="small text-muted" id="plan-usage">0/30 movimientos este mes</div>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span id="plan-status-pill" class="badge bg-secondary">FREE</span>
+          <button class="btn btn-sm btn-primary d-none" id="btn-activate-trial" type="button">Activar trial 90 días</button>
+        </div>
+      </div>
+      <button class="btn btn-link p-0 small text-muted mt-2" id="admin-toggle-hint" type="button">
+        ¿Eres admin? toca aquí 5 veces para activar el modo admin.
+      </button>
     </div>
 
     <div id="smart-area" class="d-none">
@@ -626,8 +680,8 @@
         <div class="btn-group w-100 mb-4 p-1 rounded-3" role="group" style="background-color:var(--bg-body);">
           <input type="radio" class="btn-check" name="ttype" id="t-exp" value="expense" checked onchange="uiUpdateCats(); uiToggleMsi(); uiToggleScope();" />
           <label class="btn btn-outline-danger border-0 rounded-3" for="t-exp">Gasto (-)</label>
-          <input type="radio" class="btn-check" name="ttype" id="t-pay" value="payment" onchange="uiUpdateCats(); uiToggleMsi(); uiToggleScope();" />
-          <label class="btn btn-outline-success border-0 rounded-3" for="t-pay">Abono (+)</label>
+          <input type="radio" class="btn-check" name="ttype" id="t-pay" value="income" onchange="uiUpdateCats(); uiToggleMsi(); uiToggleScope();" />
+          <label class="btn btn-outline-success border-0 rounded-3" for="t-pay">Ingreso (+)</label>
         </div>
 
         <div class="mb-3">
@@ -1023,12 +1077,38 @@
     </div>
   </div>
 
+  <div class="modal fade" id="modalUpgrade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content card-box border-0">
+        <div class="modal-body">
+          <h5 class="fw-black mb-2">Límite del plan gratis</h5>
+          <p class="text-muted small mb-3">
+            Tu plan actual permite 30 movimientos por mes y 1 meta. Activa el trial para desbloquear los límites.
+          </p>
+          <div class="d-grid gap-2">
+            <button class="btn btn-primary d-none" id="btn-modal-trial" type="button">Activar trial 90 días</button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="./config/firebase-config.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
     import {
       getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc,
       query, orderBy, writeBatch, Timestamp, enableIndexedDbPersistence, where, getDocs, getDoc, setDoc,
@@ -1070,16 +1150,13 @@
       });
     }
 
-    // ✅ Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDTDnao-bkiC4yxmV-mGryBmmvlWOvMIpg",
-      authDomain: "finanzas-yayos-1738b.firebaseapp.com",
-      projectId: "finanzas-yayos-1738b",
-      storageBucket: "finanzas-yayos-1738b.firebasestorage.app",
-      messagingSenderId: "821972200592",
-      appId: "1:821972200592:web:de809935c39a319ff4bc15",
-      measurementId: "G-FL2NL2H5SR"
-    };
+    // ✅ Firebase config (pilot-friendly)
+    const firebaseConfig = window.__FIREBASE_CONFIG__;
+    const configMissingEl = document.getElementById("config-missing");
+    if(!firebaseConfig){
+      if(configMissingEl) configMissingEl.classList.remove("d-none");
+      showStartupError("Falta config de Firebase. Revisa config/firebase-config.js", { canRetry: false });
+    }
 
     // Loader
     const loaderEl = document.getElementById('loader');
@@ -1175,6 +1252,13 @@
       return err?.message ? `Error inesperado: ${err.message}` : "Error inesperado de Firestore.";
     }
 
+    const getMonthKeyFromDate = (date) => {
+      const localDate = date ? new Date(date) : new Date();
+      const year = localDate.getFullYear();
+      const month = String(localDate.getMonth() + 1).padStart(2, "0");
+      return `${year}-${month}`;
+    };
+
     function unsubscribeAll(){
       if(unsubCards){
         unsubCards();
@@ -1202,7 +1286,7 @@
     }
 
     // Firestore init
-    let app, db;
+    let app, db, auth;
     let hasLoggedProjectId = false;
     const logProjectIdOnce = () => {
       if(hasLoggedProjectId) return;
@@ -1211,10 +1295,19 @@
       }
       hasLoggedProjectId = true;
     };
-    try { app = initializeApp(firebaseConfig); db = getFirestore(app); }
-    catch(e){ showStartupError("Error inicializando Firebase: "+(e.message||e), { canRetry: false }); }
-    enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
-    logProjectIdOnce();
+    if(firebaseConfig){
+      try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+      } catch(e){
+        showStartupError("Error inicializando Firebase: "+(e.message||e), { canRetry: false });
+      }
+      if(db){
+        enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
+      }
+      logProjectIdOnce();
+    }
 
     // =========================
     // 🔔 PUSH (por ahora placeholder)
@@ -1241,6 +1334,309 @@
       { name: "Palacio", owner: "haru" },
       { name: "Pago c/ Transferencia", owner: "both" }
     ];
+
+    // =========================
+    // ✅ Auth + Tenant + Plan
+    // =========================
+    const authScreen = document.getElementById("auth-screen");
+    const appRoot = document.getElementById("app-root");
+    const authEmailInput = document.getElementById("auth-email");
+    const authPasswordInput = document.getElementById("auth-password");
+    const authErrorEl = document.getElementById("auth-error");
+    const btnAuthLogin = document.getElementById("btn-auth-login");
+    const btnAuthRegister = document.getElementById("btn-auth-register");
+    const btnAuthLogout = document.getElementById("btn-auth-logout");
+    const planBadgeLabel = document.getElementById("plan-badge-label");
+    const planStatusPill = document.getElementById("plan-status-pill");
+    const planUsageEl = document.getElementById("plan-usage");
+    const planLimitsEl = document.getElementById("plan-limits");
+    const btnActivateTrial = document.getElementById("btn-activate-trial");
+    const btnModalTrial = document.getElementById("btn-modal-trial");
+    const adminToggleHint = document.getElementById("admin-toggle-hint");
+
+    const ADMIN_MODE_KEY = "fy_admin_mode";
+    const FREE_LIMITS = { maxTransactionsPerMonth: 30, maxGoals: 1 };
+    let adminTapCount = 0;
+    let adminMode = localStorage.getItem(ADMIN_MODE_KEY) === "true";
+
+    let currentUser = null;
+    let currentUserProfile = null;
+    let currentTenantId = null;
+
+    const showAuthError = (message) => {
+      if(!authErrorEl) return;
+      if(!message){
+        authErrorEl.classList.add("d-none");
+        authErrorEl.textContent = "";
+        return;
+      }
+      authErrorEl.textContent = message;
+      authErrorEl.classList.remove("d-none");
+    };
+
+    const showAuthScreen = () => {
+      if(authScreen) authScreen.classList.remove("d-none");
+      if(appRoot) appRoot.classList.add("d-none");
+      if(btnAuthLogout) btnAuthLogout.classList.add("d-none");
+    };
+
+    const showAppScreen = () => {
+      if(authScreen) authScreen.classList.add("d-none");
+      if(appRoot) appRoot.classList.remove("d-none");
+      if(btnAuthLogout) btnAuthLogout.classList.remove("d-none");
+    };
+
+    const isTrialActive = (profile) => {
+      if(!profile) return false;
+      if(profile.plan !== "trial") return false;
+      if(!profile.paidUntil) return false;
+      const paidUntilDate = profile.paidUntil?.toDate ? profile.paidUntil.toDate() : new Date(profile.paidUntil);
+      return paidUntilDate > new Date();
+    };
+
+    const getPlanLabel = (profile) => {
+      if(isTrialActive(profile)) return "TRIAL";
+      return "FREE";
+    };
+
+    const formatShortDate = (date) => {
+      const d = date instanceof Date ? date : new Date(date);
+      return d.toLocaleDateString("es-MX");
+    };
+
+    const updatePlanUI = async ({ monthCount = null } = {}) => {
+      const planLabel = getPlanLabel(currentUserProfile);
+      const paidUntilDate = currentUserProfile?.paidUntil?.toDate
+        ? currentUserProfile.paidUntil.toDate()
+        : currentUserProfile?.paidUntil;
+      const badgeText = planLabel === "TRIAL" && paidUntilDate
+        ? `TRIAL (vence: ${formatShortDate(paidUntilDate)})`
+        : planLabel;
+      if(planBadgeLabel) planBadgeLabel.textContent = badgeText;
+      if(planStatusPill){
+        planStatusPill.textContent = planLabel;
+        planStatusPill.className = `badge ${planLabel === "TRIAL" ? "bg-warning text-dark" : "bg-secondary"}`;
+      }
+      if(planLimitsEl){
+        planLimitsEl.textContent = planLabel === "TRIAL"
+          ? "TRIAL activo: límites desbloqueados"
+          : "Plan GRATIS: 30 movimientos/mes • 1 meta";
+      }
+      if(planUsageEl){
+        const count = Number.isFinite(monthCount) ? monthCount : 0;
+        planUsageEl.textContent = `${count}/${FREE_LIMITS.maxTransactionsPerMonth} movimientos este mes`;
+      }
+      const showTrialButton = adminMode && !isTrialActive(currentUserProfile);
+      if(btnActivateTrial) btnActivateTrial.classList.toggle("d-none", !showTrialButton);
+      if(btnModalTrial) btnModalTrial.classList.toggle("d-none", !showTrialButton);
+    };
+
+    const getMonthlyTransactionCount = async (monthKey) => {
+      if(!currentTenantId) return 0;
+      const qMonth = query(
+        getTenantCollection("expenses"),
+        where("monthKey", "==", monthKey),
+        limit(FREE_LIMITS.maxTransactionsPerMonth + 1)
+      );
+      const snap = await getDocs(qMonth);
+      return snap.size;
+    };
+
+    const refreshMonthlyUsage = async () => {
+      const monthKey = getMonthKeyFromDate(new Date());
+      const count = await getMonthlyTransactionCount(monthKey);
+      updatePlanUI({ monthCount: count });
+      return count;
+    };
+
+    const showUpgradeModal = () => {
+      const modalEl = document.getElementById("modalUpgrade");
+      if(!modalEl) return;
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    };
+
+    const setAdminMode = (enabled) => {
+      adminMode = enabled;
+      localStorage.setItem(ADMIN_MODE_KEY, enabled ? "true" : "false");
+      updatePlanUI({});
+      showToast(enabled ? "Modo admin activado." : "Modo admin desactivado.", { tone: "info", duration: 2200 });
+    };
+
+    if(adminToggleHint){
+      adminToggleHint.addEventListener("click", () => {
+        adminTapCount += 1;
+        if(adminTapCount < 5) return;
+        adminTapCount = 0;
+        const confirmToggle = confirm(adminMode ? "¿Desactivar modo admin?" : "¿Activar modo admin?");
+        if(confirmToggle) setAdminMode(!adminMode);
+      });
+    }
+
+    const handleAuthError = (error) => {
+      const code = error?.code || "";
+      if(code.includes("auth/invalid-email")) return "El correo no es válido.";
+      if(code.includes("auth/user-not-found")) return "No existe una cuenta con ese correo.";
+      if(code.includes("auth/wrong-password")) return "Contraseña incorrecta.";
+      if(code.includes("auth/email-already-in-use")) return "Ese correo ya está registrado.";
+      if(code.includes("auth/weak-password")) return "La contraseña es muy corta (mínimo 6 caracteres).";
+      if(code.includes("auth/network-request-failed")) return "Problema de conexión. Intenta de nuevo.";
+      return "No se pudo completar la autenticación.";
+    };
+
+    const ensureUserProfile = async (user) => {
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+      if(!snap.exists()){
+        const payload = {
+          createdAt: serverTimestamp(),
+          email: user.email || null,
+          status: "active",
+          plan: "free",
+          role: "owner",
+          tenantId: null,
+          paidUntil: null
+        };
+        await setDoc(userRef, payload);
+        return payload;
+      }
+      return snap.data();
+    };
+
+    const ensureTenant = async (user, profile) => {
+      if(profile?.tenantId) return profile.tenantId;
+      const tenantId = `t_${user.uid.slice(0, 8)}_${Date.now()}`;
+      await setDoc(doc(db, "tenants", tenantId), {
+        ownerUid: user.uid,
+        createdAt: serverTimestamp(),
+        name: user.email || null
+      });
+      await updateDoc(doc(db, "users", user.uid), {
+        tenantId,
+        role: "owner"
+      });
+      return tenantId;
+    };
+
+    const maybeDowngradeExpiredTrial = async (profile) => {
+      if(!profile || profile.plan !== "trial") return profile;
+      const paidUntilDate = profile.paidUntil?.toDate ? profile.paidUntil.toDate() : new Date(profile.paidUntil);
+      if(paidUntilDate && paidUntilDate > new Date()) return profile;
+      const updated = { ...profile, plan: "free", paidUntil: null };
+      if(currentUser){
+        await updateDoc(doc(db, "users", currentUser.uid), {
+          plan: "free",
+          paidUntil: null,
+          updatedAt: serverTimestamp()
+        });
+      }
+      return updated;
+    };
+
+    const getTenantCollection = (name) => {
+      if(!currentTenantId){
+        throw new Error("Tenant no listo.");
+      }
+      return collection(db, "tenants", currentTenantId, name);
+    };
+    const getTenantDoc = (name, id) => doc(db, "tenants", currentTenantId, name, id);
+
+    const activateTrial = async () => {
+      if(!currentUser || !adminMode) return;
+      const paidUntil = Timestamp.fromDate(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000));
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        plan: "trial",
+        paidUntil,
+        updatedAt: serverTimestamp()
+      });
+      currentUserProfile = { ...(currentUserProfile || {}), plan: "trial", paidUntil };
+      updatePlanUI({});
+      showToast("Trial activado por 90 días.", { tone: "success", duration: 2200 });
+    };
+
+    if(btnActivateTrial){
+      btnActivateTrial.addEventListener("click", activateTrial);
+    }
+    if(btnModalTrial){
+      btnModalTrial.addEventListener("click", async () => {
+        await activateTrial();
+        const modalEl = document.getElementById("modalUpgrade");
+        const modalInstance = modalEl ? bootstrap.Modal.getInstance(modalEl) : null;
+        if(modalInstance) modalInstance.hide();
+      });
+    }
+
+    const runLogin = async (mode) => {
+      showAuthError("");
+      const email = authEmailInput?.value?.trim();
+      const password = authPasswordInput?.value || "";
+      if(!email || !password){
+        showAuthError("Completa tu correo y contraseña.");
+        return;
+      }
+      try{
+        if(mode === "register"){
+          await createUserWithEmailAndPassword(auth, email, password);
+        }else{
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      }catch(error){
+        showAuthError(handleAuthError(error));
+      }
+    };
+
+    if(btnAuthLogin){
+      btnAuthLogin.addEventListener("click", () => runLogin("login"));
+    }
+    if(btnAuthRegister){
+      btnAuthRegister.addEventListener("click", () => runLogin("register"));
+    }
+    if(btnAuthLogout){
+      btnAuthLogout.addEventListener("click", async () => {
+        if(auth) await signOut(auth);
+      });
+    }
+
+    const resetTenantState = () => {
+      currentUser = null;
+      currentUserProfile = null;
+      currentTenantId = null;
+      cards = [];
+      trans = [];
+      goals = [];
+      unsubscribeAll();
+    };
+
+    const initTenantSession = async () => {
+      startLoader();
+      await seedPresetCards();
+      resubscribeAll();
+      await refreshMonthlyUsage();
+      updatePlanUI({});
+    };
+
+    if(auth){
+      onAuthStateChanged(auth, async (user) => {
+        if(!user){
+          resetTenantState();
+          showAuthScreen();
+          stopLoader();
+          return;
+        }
+        startLoader();
+        currentUser = user;
+        const profile = await ensureUserProfile(user);
+        const normalizedProfile = await maybeDowngradeExpiredTrial(profile);
+        const tenantId = await ensureTenant(user, normalizedProfile);
+        currentUserProfile = { ...normalizedProfile, tenantId };
+        currentTenantId = tenantId;
+        showAuthScreen();
+        showAppScreen();
+        await initTenantSession();
+      });
+    }else if(firebaseConfig){
+      showAuthScreen();
+    }
 
     // Owner
     const OWNER_KEY="fy_owner";
@@ -1548,6 +1944,9 @@
       if(scope === "personal" || scope === "shared") return scope;
       return "shared";
     };
+
+    const normalizeType = (type) => (type === "payment" ? "income" : type);
+    const isIncomeType = (type) => normalizeType(type) === "income";
 
     const applyScopeFilter = (expenses = [], filter = getActiveScopeFilter()) => {
       if(filter === "all") return expenses;
@@ -2664,7 +3063,7 @@
     const saveMonthlySummary = async (summary) => {
       if(!summary) return null;
       const id = buildMonthlySummaryId(summary.owner, summary.periodKey, summary.scopeFilter);
-      await setDoc(doc(db, MONTHLY_SUMMARY_COLLECTION, id), summary, { merge: true });
+      await setDoc(getTenantDoc(MONTHLY_SUMMARY_COLLECTION, id), summary, { merge: true });
       return summary;
     };
 
@@ -2672,7 +3071,7 @@
       const o = getActiveOwner(owner);
       const periodKey = getMonthKey(previousMonth(new Date()));
       const summaryId = buildMonthlySummaryId(o, periodKey, scopeFilter);
-      const docRef = doc(db, MONTHLY_SUMMARY_COLLECTION, summaryId);
+      const docRef = getTenantDoc(MONTHLY_SUMMARY_COLLECTION, summaryId);
 
       if(!force){
         const existing = await getDoc(docRef);
@@ -2696,7 +3095,7 @@
 
     const loadMonthlySummaries = async (owner, lastN = 6, scopeFilter = getActiveScopeFilter()) => {
       const o = getActiveOwner(owner);
-      const snap = await getDocs(query(collection(db, MONTHLY_SUMMARY_COLLECTION), where("owner", "==", o)));
+      const snap = await getDocs(query(getTenantCollection(MONTHLY_SUMMARY_COLLECTION), where("owner", "==", o)));
       const summaries = [];
       snap.forEach((docSnap) => {
         const data = docSnap.data();
@@ -2904,7 +3303,7 @@
       const rangeEnd = toDate(end);
       try {
         const qRange = query(
-          collection(db, "expenses"),
+          getTenantCollection("expenses"),
           where("owner", "==", o),
           where("type", "==", type),
           where("date", ">=", rangeStart),
@@ -3309,8 +3708,9 @@
     // Seed preset cards (NO sobreescribe tus datos)
     async function seedPresetCards(){
       try{
+        if(!currentTenantId) return;
         setLoaderMsg("Verificando tarjetas precargadas...");
-        const existingSnap = await getDocs(query(collection(db,"cards")));
+        const existingSnap = await getDocs(query(getTenantCollection("cards")));
         const existingByOwner={ yair:new Set(), haru:new Set(), both:new Set() };
 
         existingSnap.forEach(d=>{
@@ -3325,7 +3725,7 @@
           const nm=c.name.toLowerCase();
           const bucket=existingByOwner[c.owner]||new Set();
           if(!bucket.has(nm)){
-            await addDoc(collection(db,"cards"), {
+            await addDoc(getTenantCollection("cards"), {
               name:c.name,
               owner:c.owner,
               cutDay:1, payDay:1, limit:0, balance:0, payGoal:0
@@ -3342,6 +3742,10 @@
 
     // Subscribe helpers
     function resubscribeAll(){
+      if(!currentTenantId){
+        console.warn("Tenant aún no listo.");
+        return;
+      }
       unsubscribeAll();
       subscribeCards();
       subscribeTrans();
@@ -3354,7 +3758,7 @@
     // Cards subscribe (front filter)
     function subscribeCards(){
       setLoaderMsg("Cargando tarjetas...");
-      const qCards=query(collection(db,"cards"), orderBy("name"));
+      const qCards=query(getTenantCollection("cards"), orderBy("name"));
       let firstSnapshot = true;
       unsubCards = onSnapshot(qCards, (snap)=>{
         if(firstSnapshot){
@@ -3467,7 +3871,7 @@
     // Trans subscribe (owner)
     function subscribeTrans(){
       setLoaderMsg("Cargando movimientos...");
-      const qTrans=query(collection(db,"expenses"), where("owner","==",OWNER), orderBy("date","desc"));
+      const qTrans=query(getTenantCollection("expenses"), where("owner","==",OWNER), orderBy("date","desc"));
       let firstSnapshot = true;
       unsubTrans = onSnapshot(qTrans, { includeMetadataChanges: true }, (snap)=>{
         if(firstSnapshot){
@@ -3478,6 +3882,7 @@
         snap.forEach(d=>{
           const t=d.data();
           t.id=d.id;
+          t.type = normalizeType(t.type);
           t.scope = normalizeScope(t.scope);
           trans.push(t);
         });
@@ -3546,7 +3951,7 @@
         { field: "updatedAt", direction: "desc" }
       ];
       const q = query(
-        collection(db,"goals"),
+        getTenantCollection("goals"),
         where("status","==","active"),
         orderBy("priority","asc"),
         orderBy("sortOrder","asc"),
@@ -3590,7 +3995,7 @@
           if(!Number.isFinite(goal.sortOrder)){
             const newOrder = index * GOAL_SORT_STEP;
             goal.sortOrder = newOrder;
-            batch.update(doc(db,"goals",goal.id), { sortOrder: newOrder, updatedAt: serverTimestamp() });
+            batch.update(getTenantDoc("goals", goal.id), { sortOrder: newOrder, updatedAt: serverTimestamp() });
             needsUpdate = true;
           }
         });
@@ -3707,7 +4112,7 @@
       if(listEl) listEl.innerHTML = '<div class="text-muted small">Cargando aportes...</div>';
       try{
         const qContrib = query(
-          collection(db, "goal_contributions"),
+          getTenantCollection("goal_contributions"),
           where("goalId", "==", goalId),
           orderBy("date", "desc"),
           limit(20)
@@ -3808,7 +4213,7 @@
         archiveBtn.addEventListener("click", async()=>{
           if(!confirm("¿Archivar esta meta?")) return;
           try{
-            await updateDoc(doc(db,"goals", goalId), { status: "archived", updatedAt: serverTimestamp() });
+            await updateDoc(getTenantDoc("goals", goalId), { status: "archived", updatedAt: serverTimestamp() });
             showToast("Meta archivada.", { tone: "info", duration: 2200 });
             if(goalDetailModal) goalDetailModal.hide();
           }catch(err){
@@ -3859,7 +4264,7 @@
       orderedGoals.forEach((goal, index)=>{
         const newOrder = index * GOAL_SORT_STEP;
         goal.sortOrder = newOrder;
-        batch.update(doc(db,"goals", goal.id), {
+        batch.update(getTenantDoc("goals", goal.id), {
           sortOrder: newOrder,
           updatedAt: serverTimestamp()
         });
@@ -3909,7 +4314,7 @@
         if(goal) goal.priority = value;
         renderGoals();
         try{
-          await updateDoc(doc(db,"goals", id), { priority: value, updatedAt: serverTimestamp() });
+          await updateDoc(getTenantDoc("goals", id), { priority: value, updatedAt: serverTimestamp() });
         }catch(err){
           console.error("Update priority error:", err);
           showToast("No se pudo actualizar la prioridad.", { tone: "warning", duration: 2400 });
@@ -4035,7 +4440,7 @@
 
         let paid=0;
         trans.forEach(t=>{
-          if(t.cardId===c.id && t.type==='payment' && t.date.toDate()>cycleStart) paid += t.amount;
+          if(t.cardId===c.id && isIncomeType(t.type) && t.date.toDate()>cycleStart) paid += t.amount;
         });
 
         const pct=Math.min((paid/goal)*100,100);
@@ -5087,7 +5492,7 @@
         payGoal: parseFloat(document.getElementById('c-goal').value||0)
       };
 
-      await updateDoc(doc(db,"cards",id), payload);
+      await updateDoc(getTenantDoc("cards", id), payload);
       cardModal.hide();
 
       const updated = cards.find(x=>x.id===id);
@@ -5110,6 +5515,15 @@
         return;
       }
 
+      if(!isTrialActive(currentUserProfile)){
+        const goalsSnap = await getDocs(query(getTenantCollection("goals"), limit(FREE_LIMITS.maxGoals + 1)));
+        if(goalsSnap.size >= FREE_LIMITS.maxGoals){
+          showToast("Tu plan gratis permite 1 meta. Activa el trial para más.", { tone: "warning", duration: 2600 });
+          showUpgradeModal();
+          return;
+        }
+      }
+
       const samePriority = goals.filter(g=>getGoalPriorityValue(g.priority) === getGoalPriorityValue(priority));
       const maxSort = samePriority.length
         ? Math.max(...samePriority.map(g=>Number.isFinite(g.sortOrder) ? g.sortOrder : 0))
@@ -5117,7 +5531,7 @@
       const nextSortOrder = maxSort + GOAL_SORT_STEP;
 
       try{
-        await addDoc(collection(db,"goals"), {
+        await addDoc(getTenantCollection("goals"), {
           name,
           targetAmount,
           status: "active",
@@ -5148,7 +5562,7 @@
       }
       const date = dateValue ? (parseLocalYYYYMMDDToDate(dateValue) || new Date()) : new Date();
       try{
-        await addDoc(collection(db,"goal_contributions"), {
+        await addDoc(getTenantCollection("goal_contributions"), {
           goalId,
           amount,
           owner,
@@ -5156,7 +5570,7 @@
           date: Timestamp.fromDate(date),
           createdAt: serverTimestamp()
         });
-        await updateDoc(doc(db,"goals", goalId), {
+        await updateDoc(getTenantDoc("goals", goalId), {
           savedAmount: increment(amount),
           updatedAt: serverTimestamp()
         });
@@ -5185,7 +5599,7 @@
         return;
       }
       if(confirm("¿Eliminar tarjeta?")){
-        await deleteDoc(doc(db,"cards",id));
+        await deleteDoc(getTenantDoc("cards", id));
         cardModal.hide();
 
         await sheetsSend({
@@ -5205,7 +5619,8 @@
       const btnSave=document.getElementById('btn-save-trans');
       let saveSuccess = false;
 
-      const type=document.querySelector('input[name="ttype"]:checked')?.value;
+      const rawType=document.querySelector('input[name="ttype"]:checked')?.value;
+      const type=normalizeType(rawType);
       const amt=parseFloat(document.getElementById('t-amount').value);
       const cid=document.getElementById('t-card').value;
       const dateValue = document.getElementById('t-date').value;
@@ -5222,6 +5637,18 @@
         const cObj=cards.find(c=>c.id===cid);
         if(!cObj) throw new Error("Tarjeta no encontrada");
         const previousTrans = tid ? trans.find(t=>t.id===tid) : null;
+        const parsedDate = parseLocalYYYYMMDDToDate(dateValue) || new Date();
+        const monthKey = getMonthKeyFromDate(parsedDate);
+
+        if(!tid && !isTrialActive(currentUserProfile)){
+          const monthCount = await getMonthlyTransactionCount(monthKey);
+          if(monthCount >= FREE_LIMITS.maxTransactionsPerMonth){
+            showToast("Límite mensual alcanzado. Activa trial para continuar.", { tone: "warning", duration: 2600 });
+            showUpgradeModal();
+            setLoading(btnSave, false);
+            return;
+          }
+        }
 
         let newBal=parseFloat(cObj.balance||0);
         const batch=writeBatch(db);
@@ -5255,7 +5682,9 @@
           cardName: cObj.name,
           concept: document.getElementById('t-concept').value,
           category: document.getElementById('t-cat').value,
-          date: Timestamp.fromDate(parseLocalYYYYMMDDToDate(document.getElementById('t-date').value) || new Date()),
+          date: Timestamp.fromDate(parsedDate),
+          monthKey,
+          updatedAt: serverTimestamp(),
           scope: scopeValue,
 
           // MSI
@@ -5264,10 +5693,10 @@
           msiStart: msiStart
         };
 
-        const cardRef=doc(db,"cards",cid);
+        const cardRef=getTenantDoc("cards", cid);
 
         if(tid){
-          batch.update(doc(db,"expenses",tid), payload);
+          batch.update(getTenantDoc("expenses", tid), payload);
           batch.update(cardRef, { balance:newBal });
           await batch.commit();
 
@@ -5280,7 +5709,8 @@
           emit("EXPENSE_UPDATED", { id: tid, data: payload });
 
         }else{
-          const createdRef = await addDoc(collection(db,"expenses"), payload);
+          payload.createdAt = serverTimestamp();
+          const createdRef = await addDoc(getTenantCollection("expenses"), payload);
           await updateDoc(cardRef, { balance:newBal });
 
           await sheetsSend({
@@ -5317,6 +5747,7 @@
         }
 
         invalidateCacheForOwner(OWNER);
+        await refreshMonthlyUsage();
         refreshAll({ owner: OWNER, force: true, source: "save-expense" });
         updateAlerts({ force: true });
         cancelSimulation();
@@ -5343,7 +5774,7 @@
       const transDate = t.date?.toDate ? t.date.toDate() : t.date;
       document.getElementById('t-date').value = toLocalYYYYMMDD(transDate);
 
-      if(t.type==='payment') document.getElementById('t-pay').checked=true;
+      if(isIncomeType(t.type)) document.getElementById('t-pay').checked=true;
       else document.getElementById('t-exp').checked=true;
 
       uiUpdateCats();
@@ -5391,8 +5822,8 @@
       else newBal += t.amount;
 
       const batch=writeBatch(db);
-      batch.update(doc(db,"cards",t.cardId), { balance:newBal });
-      batch.delete(doc(db,"expenses",id));
+      batch.update(getTenantDoc("cards", t.cardId), { balance:newBal });
+      batch.delete(getTenantDoc("expenses", id));
       await batch.commit();
 
       await sheetsSend({
@@ -5408,6 +5839,7 @@
       }
 
       invalidateCacheForOwner(OWNER);
+      await refreshMonthlyUsage();
       refreshAll({ owner: OWNER, force: true, source: "delete-expense" });
       updateAlerts({ force: true });
       cancelSimulation();
@@ -5457,6 +5889,7 @@
       refreshAll({ owner: OWNER, force: true, source: "snapshot" });
       updateAlerts({ force: true });
       updateMonthlyFootprint({ force: true });
+      refreshMonthlyUsage();
       if(FEATURES.timeline){
         renderHistory();
       }
@@ -5486,9 +5919,9 @@
     syncScopeFilterUI();
     setupGoalEvents();
     document.body.classList.toggle('ios-fallback', isProbablyIOS() || !window.PointerEvent);
-    startLoader();
-    await seedPresetCards();
-    resubscribeAll();
+    if(!currentUser){
+      showAuthScreen();
+    }
   </script>
 </body>
 </html>
