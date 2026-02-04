@@ -147,6 +147,229 @@
       width:100%;
       max-width:560px;
     }
+    .landing-pro{
+      width:100%;
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      gap:32px;
+    }
+    .landing-hero{
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+    .landing-hero-text{
+      order:2;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .landing-hero-visual{
+      order:1;
+    }
+    .landing-cta{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .landing-trust{
+      font-size:.85rem;
+      color:var(--text-muted);
+      font-weight:600;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+    }
+    .landing-section{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .landing-section-title{
+      font-size:1.1rem;
+      font-weight:800;
+    }
+    .landing-cards{
+      display:grid;
+      gap:16px;
+      grid-template-columns:1fr;
+    }
+    .landing-feature-card{
+      background:var(--bg-card);
+      border-radius:18px;
+      padding:18px;
+      border:1px solid var(--border-color);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(6px);
+    }
+    .landing-feature-card h6{
+      font-weight:700;
+      margin-bottom:8px;
+    }
+    .landing-preview-wrap{
+      position:relative;
+      background:linear-gradient(135deg, rgba(37,99,235,.08), rgba(15,23,42,.04));
+      border-radius:22px;
+      padding:20px;
+      border:1px solid var(--border-color);
+      box-shadow:0 20px 40px rgba(15,23,42,.12);
+      transform:rotate(-1.5deg);
+    }
+    .landing-preview-badge{
+      position:absolute;
+      top:-12px;
+      left:20px;
+      background:var(--primary);
+      color:#fff;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:700;
+      box-shadow:0 8px 16px rgba(37,99,235,.3);
+    }
+    .preview-card{
+      background:var(--bg-card);
+      border-radius:18px;
+      padding:18px;
+      border:1px solid var(--border-color);
+      box-shadow:var(--shadow);
+      transform:rotate(1.5deg);
+    }
+    .preview-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:16px;
+    }
+    .preview-title{
+      font-weight:800;
+      letter-spacing:.4px;
+    }
+    .preview-grid{
+      display:grid;
+      gap:12px;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+    .preview-mini-card{
+      background:var(--bg-body);
+      border-radius:14px;
+      padding:12px;
+      border:1px solid var(--border-color);
+    }
+    .preview-mini-label{
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.7px;
+      color:var(--text-muted);
+      font-weight:700;
+    }
+    .preview-mini-value{
+      font-size:1.2rem;
+      font-weight:800;
+    }
+    .preview-chart{
+      margin-top:16px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+    .preview-donut{
+      width:96px;
+      height:96px;
+      border-radius:50%;
+      background:conic-gradient(#2563eb 0 45%, #93c5fd 45% 70%, #dbeafe 70% 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+    .preview-donut::after{
+      content:"";
+      width:58px;
+      height:58px;
+      background:var(--bg-card);
+      border-radius:50%;
+      border:1px solid var(--border-color);
+    }
+    .preview-meta{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .preview-meta span{
+      font-size:.85rem;
+      color:var(--text-muted);
+    }
+    .preview-meta strong{
+      font-weight:800;
+      color:var(--text-main);
+    }
+    .preview-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:.7rem;
+      font-weight:700;
+      background:rgba(37,99,235,.12);
+      color:var(--primary);
+    }
+    .landing-plans{
+      display:grid;
+      gap:16px;
+      grid-template-columns:1fr;
+    }
+    .landing-plan-card{
+      background:var(--bg-card);
+      border-radius:18px;
+      padding:20px;
+      border:1px solid var(--border-color);
+      box-shadow:var(--shadow);
+    }
+    .landing-plan-card h6{
+      font-weight:800;
+      margin-bottom:12px;
+    }
+    .landing-plan-card ul{
+      padding-left:18px;
+      margin-bottom:0;
+      color:var(--text-muted);
+      font-size:.9rem;
+    }
+    .landing-footer{
+      text-align:center;
+      color:var(--text-muted);
+      font-size:.85rem;
+      padding:12px 0 20px;
+    }
+    @media (min-width: 768px){
+      .landing-cta{
+        flex-direction:row;
+      }
+      .landing-cards{
+        grid-template-columns:repeat(3, minmax(0, 1fr));
+      }
+      .landing-plans{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 992px){
+      .landing-hero{
+        flex-direction:row;
+        align-items:center;
+        justify-content:space-between;
+      }
+      .landing-hero-text,
+      .landing-hero-visual{
+        order:0;
+        flex:1;
+      }
+      .landing-hero-text{
+        padding-right:24px;
+      }
+    }
     .auth-card{
       width:100%;
       max-width:420px;
@@ -493,22 +716,147 @@
 
   <main id="screen-landing" class="screen hidden">
     <section class="landing-screen">
-      <div class="card-box landing-card text-center">
-        <div class="text-uppercase text-muted small fw-bold">Finanzas</div>
-        <h1 class="fw-black mt-2">Tu panel financiero en un solo lugar.</h1>
-        <p class="text-muted mb-4">Controla ingresos, gastos y metas sin perder el ritmo.</p>
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-          <button class="btn btn-primary px-4" type="button" id="landing-login-btn">Iniciar sesión</button>
-          <button class="btn btn-outline-secondary px-4" type="button" id="landing-register-btn">Crear cuenta</button>
+      <div class="landing-pro">
+        <div class="landing-hero">
+          <div class="landing-hero-text">
+            <div class="text-uppercase text-muted small fw-bold">Finanzas Pro</div>
+            <h1 class="fw-black">Controla tu dinero sin complicarte</h1>
+            <p class="text-muted mb-0">Un panel financiero personal para gastos, tarjetas, categorías y reportes.</p>
+            <div class="landing-cta">
+              <button class="btn btn-primary w-100" type="button" id="landing-register-btn">Crear cuenta gratis</button>
+              <button class="btn btn-outline-secondary w-100" type="button" id="landing-login-btn">Iniciar sesión</button>
+            </div>
+            <div class="landing-trust">Piloto privado · Datos seguros · Sin cargos</div>
+          </div>
+          <div class="landing-hero-visual">
+            <div class="landing-preview-wrap">
+              <span class="landing-preview-badge">Vista previa del dashboard</span>
+              <div class="preview-card">
+                <div class="preview-header">
+                  <div class="preview-title">Finanzas</div>
+                  <span class="preview-pill">Datos de ejemplo</span>
+                </div>
+                <div class="preview-grid">
+                  <div class="preview-mini-card">
+                    <div class="preview-mini-label">Deuda total</div>
+                    <div class="preview-mini-value text-danger">$0</div>
+                  </div>
+                  <div class="preview-mini-card">
+                    <div class="preview-mini-label">Disponible</div>
+                    <div class="preview-mini-value text-success">$0</div>
+                  </div>
+                  <div class="preview-mini-card">
+                    <div class="preview-mini-label">Nivel de endeudamiento</div>
+                    <div class="preview-mini-value">0%</div>
+                  </div>
+                  <div class="preview-mini-card">
+                    <div class="preview-mini-label">Meta mensual</div>
+                    <div class="preview-mini-value">$0</div>
+                  </div>
+                </div>
+                <div class="preview-chart">
+                  <div class="preview-donut" aria-hidden="true"></div>
+                  <div class="preview-meta">
+                    <strong>Distribución mensual</strong>
+                    <span>Gastos · $0</span>
+                    <span>Ingresos · $0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="mt-4 text-start">
-          <div class="fw-bold mb-2">Lo que puedes hacer</div>
-          <ul class="small text-muted mb-0">
-            <li>Monitorea tu balance y últimos movimientos.</li>
-            <li>Organiza categorías, cuentas y personas.</li>
-            <li>Recibe alertas y proyecciones mensuales.</li>
-          </ul>
+
+        <div class="landing-section">
+          <div class="landing-section-title">Beneficios principales</div>
+          <div class="landing-cards">
+            <div class="landing-feature-card">
+              <h6>Visualiza tus gastos por categoría</h6>
+              <p class="text-muted small mb-0">Detecta en segundos dónde se va tu dinero y ajusta prioridades.</p>
+            </div>
+            <div class="landing-feature-card">
+              <h6>Controla fechas de corte y pago</h6>
+              <p class="text-muted small mb-0">Organiza cuentas y tarjetas con recordatorios claros.</p>
+            </div>
+            <div class="landing-feature-card">
+              <h6>Todo es personalizable</h6>
+              <p class="text-muted small mb-0">Adapta categorías, etiquetas y vistas a tu estilo financiero.</p>
+            </div>
+          </div>
         </div>
+
+        <div class="landing-section">
+          <div class="landing-section-title">Cómo funciona</div>
+          <div class="landing-cards">
+            <div class="landing-feature-card">
+              <h6>1. Crea tu cuenta</h6>
+              <p class="text-muted small mb-0">En menos de un minuto tienes tu panel listo.</p>
+            </div>
+            <div class="landing-feature-card">
+              <h6>2. Personaliza cuentas y categorías</h6>
+              <p class="text-muted small mb-0">Agrega tarjetas, efectivo y categorías con emojis.</p>
+            </div>
+            <div class="landing-feature-card">
+              <h6>3. Registra movimientos y analiza</h6>
+              <p class="text-muted small mb-0">Revisa tu dashboard y toma decisiones con datos.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="landing-section">
+          <div class="landing-section-title">Funciones</div>
+          <div class="landing-cards">
+            <div class="landing-feature-card">
+              <h6>Categorías personalizadas</h6>
+              <p class="text-muted small mb-0">Emojis + nombre para identificar cada movimiento.</p>
+            </div>
+            <div class="landing-feature-card">
+              <h6>Cuentas y tarjetas</h6>
+              <p class="text-muted small mb-0">Fechas de corte, pago y límites controlados.</p>
+            </div>
+            <div class="landing-feature-card">
+              <h6>Dashboard con gráficas</h6>
+              <p class="text-muted small mb-0">Resúmenes claros para tu día a día.</p>
+            </div>
+            <div class="landing-feature-card">
+              <h6>Exportar CSV (Pro)</h6>
+              <p class="text-muted small mb-0">Exportaciones avanzadas para tu contabilidad.</p>
+            </div>
+            <div class="landing-feature-card">
+              <h6>Alertas y metas</h6>
+              <p class="text-muted small mb-0">Próximamente: recordatorios inteligentes.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="landing-section">
+          <div class="landing-section-title">Planes</div>
+          <div class="landing-plans">
+            <div class="landing-plan-card">
+              <h6>Plan Gratis (Piloto)</h6>
+              <ul>
+                <li>Movimientos</li>
+                <li>Categorías personalizadas</li>
+                <li>Dashboard</li>
+              </ul>
+            </div>
+            <div class="landing-plan-card">
+              <h6>Plan Pro (Próximamente)</h6>
+              <ul>
+                <li>Descargar CSV</li>
+                <li>Alertas inteligentes</li>
+                <li>Metas financieras</li>
+              </ul>
+              <div class="d-grid mt-3">
+                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalPro">
+                  Quiero Pro
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="landing-footer">Piloto privado · Soporte · 2026</div>
       </div>
     </section>
   </main>
@@ -1057,9 +1405,12 @@
   <div id="view-hist" class="view-section p-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="fw-black m-0">Historial</h4>
-      <button class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="exportCSV()">
-        <i class="fas fa-file-csv me-1"></i> CSV
-      </button>
+      <div class="text-end">
+        <button class="btn btn-sm btn-outline-secondary btn-disabled" style="border-color:var(--border-color);color:var(--text-muted);" onclick="exportCSV()" type="button">
+          <i class="fas fa-file-csv me-1"></i> Descargar CSV (Pro) 🔒
+        </button>
+        <div class="small text-muted mt-1">Disponible en el plan Pro</div>
+      </div>
     </div>
 
     <div class="row g-2 mb-3">
@@ -1469,6 +1820,26 @@
     </div>
   </div>
 
+  <div class="modal fade" id="modalPro" tabindex="-1" aria-labelledby="modalProLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content card-box border-0">
+        <div class="modal-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h5 class="fw-black mb-1" id="modalProLabel">Función Pro</h5>
+              <p class="text-muted small mb-0">La descarga de archivos CSV estará disponible en el plan Pro.</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-primary flex-fill" type="button" data-bs-dismiss="modal">Quiero Pro</button>
+            <button class="btn btn-light flex-fill" type="button" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
   </div>
   </main>
@@ -1639,6 +2010,7 @@
       user: null,
       mode: "landing"
     };
+    window.PILOT_DISABLE_CSV = true;
 
     if(googleAuthBtn){
       googleAuthBtn.dataset.labelHtml = `<i class="fab fa-google me-2"></i> Continuar con Google`;
@@ -7541,7 +7913,21 @@
       setLoading(btn, false);
     };
 
+    let proModal = null;
+    function openProModal(){
+      const modalEl = document.getElementById("modalPro");
+      if(!modalEl || !window.bootstrap) return;
+      if(!proModal){
+        proModal = new bootstrap.Modal(modalEl);
+      }
+      proModal.show();
+    }
+
     window.exportCSV=()=>{
+      if(window.PILOT_DISABLE_CSV){
+        openProModal();
+        return;
+      }
       let csv="Fecha,Concepto,Categoria,Monto,Tipo,Cuenta,Persona,Scope,MSI,MSI_Meses,MSI_Inicio\n";
       trans.forEach(t=>{
         const msi = t.isMsi ? "SI" : "NO";
