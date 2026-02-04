@@ -1200,10 +1200,16 @@
 
     function initFirebase(){
       try{
+        if(window.firebaseApp && window.db){
+          return { app: window.firebaseApp, db: window.db };
+        }
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         window.firebaseApp = app;
         window.db = db;
+        enableIndexedDbPersistence(db).catch((err)=>{
+          console.warn("Persistencia no habilitada:", err?.code || err?.message || err);
+        });
         console.info("Firestore inicializado correctamente");
         return { app, db };
       }catch(err){
@@ -1215,6 +1221,8 @@
 
     const { app: firebaseApp, db } = initFirebase();
     const auth = firebaseApp ? getAuth(firebaseApp) : null;
+    window.auth = auth;
+    window.__unsubs = window.__unsubs || [];
 
     // =========================
     // ✅ CONFIG SHEETS
@@ -1322,7 +1330,7 @@
       if(navigator.onLine){
         loaderTimeoutId = setTimeout(() => {
           if(appReady) return;
-          showStartupError("No se pudo conectar a Firestore. Revisa tu internet y vuelve a intentar.", { canRetry: true });
+          showStartupError("No pudimos cargar los datos aún. Intenta nuevamente.", { canRetry: true });
         }, 25000);
       }
     }
@@ -1564,24 +1572,35 @@
     function getFirestoreErrorMessage(err){
       const code = err?.code || "";
       if(code === "permission-denied") return "Permisos de Firestore: no tienes acceso a estos datos.";
-      if(code === "failed-precondition") return "Falta un índice requerido en Firestore.";
+      if(code === "failed-precondition"){
+        if(/persistence/i.test(err?.message || "")) return "Persistencia desactivada: hay otra pestaña abierta.";
+        return "Falta un índice requerido en Firestore.";
+      }
       if(code === "unavailable") return "Conexión inestable o servicio no disponible.";
       return err?.message ? `Error inesperado: ${err.message}` : "Error inesperado de Firestore.";
     }
 
+    function registerUnsub(unsubFn){
+      if(typeof unsubFn !== "function") return;
+      window.__unsubs.push(unsubFn);
+    }
+
     function unsubscribeAll(){
-      if(unsubCards){
-        unsubCards();
-        unsubCards = null;
+      if(Array.isArray(window.__unsubs)){
+        window.__unsubs.forEach((fn) => {
+          try{
+            fn();
+          }catch(e){
+            console.warn("Unsub error:", e);
+          }
+        });
+        window.__unsubs = [];
+      }else{
+        window.__unsubs = [];
       }
-      if(unsubTrans){
-        unsubTrans();
-        unsubTrans = null;
-      }
-      if(unsubGoals){
-        unsubGoals();
-        unsubGoals = null;
-      }
+      unsubCards = null;
+      unsubTrans = null;
+      unsubGoals = null;
     }
 
     function retryStartup(){
@@ -1704,7 +1723,6 @@
         return;
       }
       if(!appBooted){
-        enableIndexedDbPersistence(db).catch((err)=>console.log("Persistence status:", err.code));
         setupConnectivityListeners();
         setSyncStatus(appState.isOnline ? "synced" : "local", { silent: true });
         appBooted = true;
@@ -3987,6 +4005,7 @@
         console.error("Cards snapshot error:", err);
         showStartupError(`Error leyendo tarjetas: ${getFirestoreErrorMessage(err)}`);
       });
+      registerUnsub(unsubCards);
     }
 
     // Trans subscribe (owner)
@@ -4018,6 +4037,7 @@
         console.error("Expenses snapshot error:", err);
         showStartupError(`Error leyendo movimientos: ${getFirestoreErrorMessage(err)}`);
       });
+      registerUnsub(unsubTrans);
     }
 
     function updateEmptyState(){
@@ -4192,6 +4212,7 @@
         }
         renderGoals();
       });
+      registerUnsub(unsubGoals);
     }
 
     function renderGoals(){
