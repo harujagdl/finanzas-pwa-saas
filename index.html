@@ -191,7 +191,7 @@
     .nav-bottom{
       position:fixed; bottom:0; width:100%;
       background:var(--bg-card);
-      display:grid; grid-template-columns:repeat(6, 1fr);
+      display:grid; grid-template-columns:repeat(7, 1fr);
       padding:10px 0; border-top:1px solid var(--border-color);
       z-index:100; padding-bottom:max(10px, env(safe-area-inset-bottom));
     }
@@ -481,10 +481,7 @@
       </div>
 
       <div class="d-flex gap-2 align-items-center">
-        <select id="owner-select" class="form-select form-select-sm owner-select" title="Espacio de trabajo">
-          <option value="general">General</option>
-          <option value="equipo">Equipo</option>
-        </select>
+        <select id="owner-select" class="form-select form-select-sm owner-select" title="Espacio de trabajo"></select>
 
         <!-- 🔔 Push (por ahora solo placeholder) -->
         <button class="btn btn-sm btn-outline-secondary rounded-circle"
@@ -712,25 +709,25 @@
     </div>
 
     <div id="cards-state-section">
-      <h6 class="fw-bold text-muted mb-3 mt-4">ESTADO DE TARJETAS</h6>
+      <h6 class="fw-bold text-muted mb-3 mt-4">ESTADO DE CUENTAS</h6>
       <div id="home-card-list"></div>
     </div>
   </div>
 
   <!-- =======================
-        ✅ TARJETAS
+        ✅ CUENTAS
   ======================= -->
   <div id="view-cards" class="view-section p-3">
     <div id="cards-placeholder" class="card-box">
-      <h4 class="fw-black mb-2">Tarjetas</h4>
-      <p class="text-muted small m-0">Próximamente habilitaremos el módulo de tarjetas en esta fase SaaS.</p>
+      <h4 class="fw-black mb-2">Cuentas</h4>
+      <p class="text-muted small m-0">Próximamente habilitaremos el módulo de cuentas en esta fase SaaS.</p>
     </div>
     <div id="cards-content" class="d-none">
-      <h4 class="fw-black mb-4">Mis Tarjetas</h4>
-      <div class="text-muted small mb-2">* Administra tus tarjetas y sus límites.</div>
+      <h4 class="fw-black mb-4">Mis Cuentas</h4>
+      <div class="text-muted small mb-2">* Administra tus cuentas y sus límites.</div>
       <div id="manage-card-list"></div>
       <button class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow mt-3" onclick="openCardModal()">
-        <i class="fas fa-pen me-2"></i> Editar Tarjeta
+        <i class="fas fa-pen me-2"></i> Editar Cuenta
       </button>
     </div>
   </div>
@@ -863,7 +860,7 @@
       </div>
       <div class="col-6">
         <select id="hist-card-filter" class="form-select" onchange="renderHistory()">
-          <option value="all">Tarjeta: Todas</option>
+          <option value="all">Cuenta: Todas</option>
         </select>
       </div>
 
@@ -964,6 +961,103 @@
     </div>
   </div>
 
+  <!-- =======================
+        ✅ AJUSTES
+  ======================= -->
+  <div id="view-settings" class="view-section p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h4 class="fw-black m-0">Ajustes</h4>
+        <div class="text-muted small">Personaliza personas, cuentas y categorías.</div>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="nav('view-home')">
+        <i class="fas fa-arrow-left me-1"></i> Volver
+      </button>
+    </div>
+
+    <div class="card-box">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h6 class="fw-bold m-0">Personas</h6>
+          <div class="text-muted small">Define quién realiza los movimientos.</div>
+        </div>
+        <span class="text-muted small" id="owners-limit-note"></span>
+      </div>
+      <div id="settings-owners-list" class="mb-3"><small class="text-muted">Cargando...</small></div>
+      <div class="input-group">
+        <input type="text" id="new-owner-name" class="form-control" placeholder="Nombre de la persona" />
+        <button class="btn btn-outline-primary" type="button" id="add-owner-btn"><i class="fas fa-plus me-1"></i>Agregar</button>
+      </div>
+    </div>
+
+    <div class="card-box">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h6 class="fw-bold m-0">Cuentas / Tarjetas</h6>
+          <div class="text-muted small">Administra cuentas de efectivo, débito o crédito.</div>
+        </div>
+        <span class="text-muted small" id="accounts-limit-note"></span>
+      </div>
+      <div id="settings-accounts-list" class="mb-3"><small class="text-muted">Cargando...</small></div>
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="small text-muted fw-bold">Nombre</label>
+          <input type="text" id="new-account-name" class="form-control" placeholder="Ej: Efectivo" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="small text-muted fw-bold">Tipo</label>
+          <select id="new-account-type" class="form-select">
+            <option value="cash">Efectivo</option>
+            <option value="debit">Débito</option>
+            <option value="credit">Crédito</option>
+            <option value="other">Otro</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="small text-muted fw-bold">Últimos 4</label>
+          <input type="text" id="new-account-last4" class="form-control" placeholder="1234" maxlength="4" />
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="small text-muted fw-bold">Banco</label>
+          <input type="text" id="new-account-bank" class="form-control" placeholder="Banco" />
+        </div>
+        <div class="col-12">
+          <button class="btn btn-outline-primary w-100" type="button" id="add-account-btn"><i class="fas fa-plus me-1"></i>Agregar cuenta</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-box">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h6 class="fw-bold m-0">Categorías</h6>
+          <div class="text-muted small">Ordena y activa categorías de gasto o ingreso.</div>
+        </div>
+        <span class="text-muted small" id="categories-limit-note"></span>
+      </div>
+      <div class="btn-group w-100 mb-3" role="group">
+        <input type="radio" class="btn-check" name="settings-cat-tab" id="settings-cat-expense" value="expense" checked />
+        <label class="btn btn-outline-danger" for="settings-cat-expense">Gastos</label>
+        <input type="radio" class="btn-check" name="settings-cat-tab" id="settings-cat-income" value="income" />
+        <label class="btn btn-outline-success" for="settings-cat-income">Ingresos</label>
+      </div>
+      <div id="settings-categories-list" class="mb-3"><small class="text-muted">Cargando...</small></div>
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-5">
+          <label class="small text-muted fw-bold">Nombre</label>
+          <input type="text" id="new-category-name" class="form-control" placeholder="Ej: Comida" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="small text-muted fw-bold">Icono</label>
+          <input type="text" id="new-category-icon" class="form-control" placeholder="🍔" />
+        </div>
+        <div class="col-6 col-md-4">
+          <button class="btn btn-outline-primary w-100" type="button" id="add-category-btn"><i class="fas fa-plus me-1"></i>Agregar categoría</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <button class="quick-fab" type="button" onclick="openQuickAdd()" aria-label="Agregar gasto rápido">
     <i class="fas fa-plus"></i>
   </button>
@@ -995,7 +1089,7 @@
       <button class="nav-btn active" onclick="nav('view-home')" id="nav-home"><i class="fas fa-chart-pie"></i> Inicio</button>
     </div>
     <div class="nav-container-item">
-      <button class="nav-btn" onclick="nav('view-cards')" id="nav-cards"><i class="fas fa-wallet"></i> Tarjetas</button>
+      <button class="nav-btn" onclick="nav('view-cards')" id="nav-cards"><i class="fas fa-wallet"></i> Cuentas</button>
     </div>
     <div class="nav-container-item">
       <div class="fab-main" onclick="nav('view-add'); resetForm();"><i class="fas fa-plus"></i></div>
@@ -1011,17 +1105,22 @@
         <span class="nav-emoji trophy-icon">🏆</span> Metas
       </button>
     </div>
+    <div class="nav-container-item">
+      <button class="nav-btn" onclick="nav('view-settings')" id="nav-settings">
+        <i class="fas fa-sliders"></i> Ajustes
+      </button>
+    </div>
   </div>
 
   <!-- =======================
-        ✅ MODAL TARJETA
+        ✅ MODAL CUENTA
   ======================= -->
   <div class="modal fade" id="modalCard" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content card-box border-0">
         <div class="modal-body">
-          <h5 class="fw-black mb-3">Editar Tarjeta</h5>
-          <div class="text-muted small mb-2">* Selecciona una tarjeta en la lista y edítala.</div>
+          <h5 class="fw-black mb-3">Editar Cuenta</h5>
+          <div class="text-muted small mb-2">* Selecciona una cuenta en la lista y edítala.</div>
 
           <form id="form-card">
             <input type="hidden" id="c-id" />
@@ -1112,11 +1211,8 @@
               <input type="number" id="goal-contribution-amount" class="form-control" placeholder="0" min="0" step="0.01" required />
             </div>
             <div class="mb-3">
-              <label class="small text-muted fw-bold">Owner</label>
-              <select id="goal-contribution-owner" class="form-select">
-                <option value="general">General</option>
-                <option value="equipo">Equipo</option>
-              </select>
+              <label class="small text-muted fw-bold">Persona</label>
+              <select id="goal-contribution-owner" class="form-select"></select>
             </div>
             <div class="mb-3">
               <label class="small text-muted fw-bold">Fecha</label>
@@ -1525,6 +1621,269 @@
       return doc(db, `users/${currentUser.uid}/${collectionName}`, docId);
     }
 
+    function getAppSettingsDoc(){
+      return getUserDoc("settings", SETTINGS_DOC_ID);
+    }
+
+    async function ensureAccountsFromCards(){
+      try{
+        const accountsSnap = await getDocs(query(getUserCollection("accounts"), limit(1)));
+        if(!accountsSnap.empty) return;
+        const cardsSnap = await getDocs(getUserCollection("cards"));
+        if(cardsSnap.empty) return;
+        const batch = writeBatch(db);
+        cardsSnap.forEach((docSnap) => {
+          const data = docSnap.data();
+          batch.set(getUserDoc("accounts", docSnap.id), {
+            name: data.name || "Cuenta",
+            type: data.type || "credit",
+            last4: data.last4 || null,
+            bank: data.bank || null,
+            isActive: data.isActive ?? true,
+            createdAt: data.createdAt || serverTimestamp(),
+            cutDay: data.cutDay || 1,
+            payDay: data.payDay || 1,
+            limit: data.limit || 0,
+            balance: data.balance || 0,
+            payGoal: data.payGoal || 0,
+            legacySource: "cards"
+          }, { merge: true });
+        });
+        await batch.commit();
+      }catch(err){
+        console.warn("No se pudo migrar cards -> accounts", err);
+      }
+    }
+
+    async function ensureUserSeed(){
+      const [settingsSnap, ownerSnap, accountSnap, categorySnap] = await Promise.all([
+        getDoc(getAppSettingsDoc()),
+        getDocs(query(getUserCollection("owners"), limit(1))),
+        getDocs(query(getUserCollection("accounts"), limit(1))),
+        getDocs(query(getUserCollection("categories"), limit(1)))
+      ]);
+
+      if(settingsSnap.exists() || !ownerSnap.empty || !accountSnap.empty || !categorySnap.empty){
+        return;
+      }
+
+      const ownerNames = ["Yo", "Pareja"];
+      const accountNames = [
+        { name: "Efectivo", type: "cash" },
+        { name: "Tarjeta Débito", type: "debit" },
+        { name: "Tarjeta Crédito", type: "credit" }
+      ];
+      const expenseCategories = ["Comida", "Transporte", "Casa", "Compras", "Servicios", "Salud", "Ocio"];
+      const incomeCategories = ["Sueldo", "Ventas", "Otros"];
+
+      const ownerIds = [];
+      for(const name of ownerNames){
+        const ref = await addDoc(getUserCollection("owners"), {
+          name,
+          color: null,
+          createdAt: serverTimestamp(),
+          isActive: true
+        });
+        ownerIds.push(ref.id);
+      }
+
+      const accountIds = [];
+      for(const account of accountNames){
+        const ref = await addDoc(getUserCollection("accounts"), {
+          name: account.name,
+          type: account.type,
+          last4: null,
+          bank: null,
+          isActive: true,
+          createdAt: serverTimestamp()
+        });
+        accountIds.push(ref.id);
+      }
+
+      const categoryIds = { expense: [], income: [] };
+      let order = 0;
+      for(const name of expenseCategories){
+        const ref = await addDoc(getUserCollection("categories"), {
+          name,
+          kind: "expense",
+          icon: null,
+          order: order++,
+          isActive: true,
+          createdAt: serverTimestamp()
+        });
+        categoryIds.expense.push(ref.id);
+      }
+      order = 0;
+      for(const name of incomeCategories){
+        const ref = await addDoc(getUserCollection("categories"), {
+          name,
+          kind: "income",
+          icon: null,
+          order: order++,
+          isActive: true,
+          createdAt: serverTimestamp()
+        });
+        categoryIds.income.push(ref.id);
+      }
+
+      await setDoc(getAppSettingsDoc(), {
+        defaultOwnerId: ownerIds[0] || null,
+        defaultAccountId: accountIds[0] || null,
+        defaultExpenseCategoryId: categoryIds.expense[0] || null,
+        defaultIncomeCategoryId: categoryIds.income[0] || null,
+        onboardingDone: false,
+        plan: "free",
+        limits: { movesPerMonth: 200, owners: 2, accounts: 3, categories: 12 },
+        migrations: {}
+      });
+    }
+
+    async function ensureSettingsDefaults(){
+      const settingsSnap = await getDoc(getAppSettingsDoc());
+      if(settingsSnap.exists()){
+        appSettings = { ...appSettings, ...settingsSnap.data() };
+        return;
+      }
+
+      const [ownersSnap, accountsSnap, expenseCatsSnap, incomeCatsSnap] = await Promise.all([
+        getDocs(query(getUserCollection("owners"), orderBy("createdAt"), limit(1))),
+        getDocs(query(getUserCollection("accounts"), orderBy("createdAt"), limit(1))),
+        getDocs(query(getUserCollection("categories"), where("kind", "==", "expense"), orderBy("order"), limit(1))),
+        getDocs(query(getUserCollection("categories"), where("kind", "==", "income"), orderBy("order"), limit(1)))
+      ]);
+
+      const defaults = {
+        defaultOwnerId: ownersSnap.docs[0]?.id || null,
+        defaultAccountId: accountsSnap.docs[0]?.id || null,
+        defaultExpenseCategoryId: expenseCatsSnap.docs[0]?.id || null,
+        defaultIncomeCategoryId: incomeCatsSnap.docs[0]?.id || null,
+        onboardingDone: false,
+        plan: "free",
+        limits: { movesPerMonth: 200, owners: 2, accounts: 3, categories: 12 },
+        migrations: {}
+      };
+      await setDoc(getAppSettingsDoc(), defaults, { merge: true });
+      appSettings = { ...appSettings, ...defaults };
+    }
+
+    async function migrateMovementsIfNeeded(){
+      const settingsSnap = await getDoc(getAppSettingsDoc());
+      const settingsData = settingsSnap.exists() ? settingsSnap.data() : {};
+      if(settingsData?.migrations?.v1_done) return;
+
+      const ownerSnap = await getDocs(getUserCollection("owners"));
+      const accountSnap = await getDocs(getUserCollection("accounts"));
+      const categorySnap = await getDocs(getUserCollection("categories"));
+
+      const ownerMap = new Map();
+      ownerSnap.forEach((docSnap) => {
+        const data = docSnap.data();
+        const key = (data.name || "").trim().toLowerCase();
+        if(key) ownerMap.set(key, { id: docSnap.id, data });
+      });
+
+      const accountMap = new Map();
+      const accountById = new Map();
+      accountSnap.forEach((docSnap) => {
+        const data = docSnap.data();
+        const key = (data.name || "").trim().toLowerCase();
+        if(key) accountMap.set(key, { id: docSnap.id, data });
+        accountById.set(docSnap.id, { id: docSnap.id, data });
+      });
+
+      const categoryMap = new Map();
+      categorySnap.forEach((docSnap) => {
+        const data = docSnap.data();
+        const key = `${(data.kind || "expense").toLowerCase()}::${(data.name || "").trim().toLowerCase()}`;
+        if(key) categoryMap.set(key, { id: docSnap.id, data });
+      });
+
+      const expensesSnap = await getDocs(getUserCollection("expenses"));
+      if(expensesSnap.empty){
+        await setDoc(getAppSettingsDoc(), { migrations: { ...(settingsData?.migrations || {}), v1_done: true } }, { merge: true });
+        return;
+      }
+
+      const batch = writeBatch(db);
+      for(const docSnap of expensesSnap.docs){
+        const data = docSnap.data();
+        const updates = {};
+
+        const ownerName = (data.ownerName || data.owner || "").trim();
+        if(!data.ownerId && ownerName){
+          const key = ownerName.toLowerCase();
+          let ownerRef = ownerMap.get(key);
+          if(!ownerRef){
+            const created = await addDoc(getUserCollection("owners"), {
+              name: ownerName,
+              color: null,
+              createdAt: serverTimestamp(),
+              isActive: true
+            });
+            ownerRef = { id: created.id, data: { name: ownerName } };
+            ownerMap.set(key, ownerRef);
+          }
+          updates.ownerId = ownerRef.id;
+          updates.ownerName = ownerRef.data.name;
+        }
+
+        const accountName = (data.accountName || data.cardName || "").trim();
+        if(!data.accountId && data.cardId){
+          const fromId = accountById.get(data.cardId);
+          if(fromId){
+            updates.accountId = fromId.id;
+            updates.accountName = fromId.data.name || accountName || null;
+          }
+        }
+        if(!data.accountId && !updates.accountId && accountName){
+          const key = accountName.toLowerCase();
+          let accountRef = accountMap.get(key);
+          if(!accountRef){
+            const created = await addDoc(getUserCollection("accounts"), {
+              name: accountName,
+              type: "other",
+              last4: null,
+              bank: null,
+              isActive: true,
+              createdAt: serverTimestamp()
+            });
+            accountRef = { id: created.id, data: { name: accountName } };
+            accountMap.set(key, accountRef);
+          }
+          updates.accountId = accountRef.id;
+          updates.accountName = accountRef.data.name;
+        }
+
+        const categoryName = (data.categoryName || data.category || "").trim();
+        if(!data.categoryId && categoryName){
+          const kind = data.type === "payment" ? "income" : "expense";
+          const key = `${kind}::${categoryName.toLowerCase()}`;
+          let categoryRef = categoryMap.get(key);
+          if(!categoryRef){
+            const created = await addDoc(getUserCollection("categories"), {
+              name: categoryName,
+              kind,
+              icon: null,
+              order: categoryMap.size,
+              isActive: true,
+              createdAt: serverTimestamp()
+            });
+            categoryRef = { id: created.id, data: { name: categoryName, kind } };
+            categoryMap.set(key, categoryRef);
+          }
+          updates.categoryId = categoryRef.id;
+          updates.categoryName = categoryRef.data.name;
+        }
+
+        if(Object.keys(updates).length){
+          batch.update(getUserDoc("expenses", docSnap.id), updates);
+        }
+      }
+
+      await batch.commit();
+      await setDoc(getAppSettingsDoc(), { migrations: { ...(settingsData?.migrations || {}), v1_done: true } }, { merge: true });
+    }
+
     async function registerUser(email, password){
       if(!auth) throw new Error("Auth no disponible");
       const credential = await createUserWithEmailAndPassword(auth, email, password);
@@ -1612,6 +1971,22 @@
       if(unsubCards){
         unsubCards();
         unsubCards = null;
+      }
+      if(unsubOwners){
+        unsubOwners();
+        unsubOwners = null;
+      }
+      if(unsubAccounts){
+        unsubAccounts();
+        unsubAccounts = null;
+      }
+      if(unsubCategories){
+        unsubCategories();
+        unsubCategories = null;
+      }
+      if(unsubSettings){
+        unsubSettings();
+        unsubSettings = null;
       }
       if(unsubTrans){
         unsubTrans();
@@ -1739,7 +2114,7 @@
       });
     }
 
-    function bootApp(){
+    async function bootApp(){
       if(!db){
         showStartupError("Firestore no está disponible. Intenta recargar más tarde.", { canRetry: false });
         return;
@@ -1754,6 +2129,14 @@
         appBooted = true;
       }
       startLoader();
+      try{
+        await ensureAccountsFromCards();
+        await ensureUserSeed();
+        await ensureSettingsDefaults();
+        await migrateMovementsIfNeeded();
+      }catch(err){
+        console.warn("Inicialización de catálogos incompleta:", err);
+      }
       resubscribeAll();
     }
 // =========================
@@ -1768,19 +2151,12 @@
       });
     };
 
-    // Presets
-    const PRESET_CARDS = [
-      { name: "Cuenta principal", owner: "general" },
-      { name: "Cuenta secundaria", owner: "general" },
-      { name: "Cuenta compartida", owner: "equipo" }
-    ];
-
-    // Owner
-    const OWNER_KEY="fy_owner";
+    const SETTINGS_DOC_ID = "app";
+    const OWNER_KEY="fy_owner_id";
     const SCOPE_FILTER_KEY="fy_scope_filter";
-    let OWNER = localStorage.getItem(OWNER_KEY) || "general";
+    let OWNER = localStorage.getItem(OWNER_KEY) || null;
     const ownerSelect = document.getElementById("owner-select");
-    if(ownerSelect) ownerSelect.value = OWNER;
+    if(ownerSelect) ownerSelect.value = OWNER || "";
 
     const getActiveScopeFilter = () => localStorage.getItem(SCOPE_FILTER_KEY) || "all";
 
@@ -1790,10 +2166,25 @@
         localStorage.setItem(OWNER_KEY, OWNER);
         setState({ owner: OWNER });
         dataState.owner = OWNER;
+        if(FEATURES.dashboard || FEATURES.prediction || FEATURES.insights || FEATURES.simulator){
+          refreshAll({ owner: OWNER, force: true, source: "owner-change" });
+        }
+        if(FEATURES.alerts) updateAlerts({ force: true });
       });
     }
 
     // State
+    let owners=[], accounts=[], categories=[];
+    let appSettings={
+      defaultOwnerId: null,
+      defaultAccountId: null,
+      defaultExpenseCategoryId: null,
+      defaultIncomeCategoryId: null,
+      onboardingDone: false,
+      plan: "free",
+      limits: { movesPerMonth: 200, owners: 2, accounts: 3, categories: 12 },
+      migrations: {}
+    };
     let cards=[], trans=[], goals=[];
     let privacy=false, chartInstance=null;
     let cardModal=null;
@@ -1801,6 +2192,7 @@
     let goalDetailModal=null;
     let goalContributionModal=null;
     let unsubCards=null, unsubTrans=null, unsubGoals=null;
+    let unsubOwners=null, unsubAccounts=null, unsubCategories=null, unsubSettings=null;
     let goalsLoading = true;
     let goalsError = null;
     let goalsLastErrorToastAt = 0;
@@ -2716,7 +3108,7 @@
         .slice(0, 3);
       if (topExpenses.length) {
         const labels = topExpenses.map((t) => {
-          const label = (t.concept || t.cardName || t.category || "(sin concepto)").trim();
+          const label = (t.concept || t.accountName || t.cardName || t.categoryName || t.category || "(sin concepto)").trim();
           return `${label} ${wrapAmount(t.amount)}`;
         });
         insights.push({
@@ -3145,8 +3537,8 @@
     // =========================
     const MONTHLY_SUMMARY_COLLECTION = "monthly_summaries";
 
-    const buildMonthlySummaryId = (owner, periodKey, scopeFilter) =>
-      `${owner}__${periodKey}__${scopeFilter || "all"}`;
+    const buildMonthlySummaryId = (ownerId, periodKey, scopeFilter) =>
+      `${ownerId}__${periodKey}__${scopeFilter || "all"}`;
 
     const buildMonthlyNarrative = (summary) => {
       if(!summary || !summary.counts?.txCount) return "";
@@ -3194,7 +3586,7 @@
       const topCategory = byCategory[0]?.category || null;
 
       const summary = {
-        owner,
+        ownerId: owner,
         periodKey,
         scopeFilter: scopeFilter || "all",
         createdAt: Timestamp.now(),
@@ -3217,7 +3609,7 @@
 
     const saveMonthlySummary = async (summary) => {
       if(!summary) return null;
-      const id = buildMonthlySummaryId(summary.owner, summary.periodKey, summary.scopeFilter);
+      const id = buildMonthlySummaryId(summary.ownerId, summary.periodKey, summary.scopeFilter);
       await setDoc(getUserDoc(MONTHLY_SUMMARY_COLLECTION, id), summary, { merge: true });
       return summary;
     };
@@ -3250,7 +3642,7 @@
 
     const loadMonthlySummaries = async (owner, lastN = 6, scopeFilter = getActiveScopeFilter()) => {
       const o = getActiveOwner(owner);
-      const snap = await getDocs(query(getUserCollection(MONTHLY_SUMMARY_COLLECTION), where("owner", "==", o)));
+      const snap = await getDocs(query(getUserCollection(MONTHLY_SUMMARY_COLLECTION), where("ownerId", "==", o)));
       const summaries = [];
       snap.forEach((docSnap) => {
         const data = docSnap.data();
@@ -3427,7 +3819,7 @@
     const expensesCache = new Map();
 
     const getActiveOwner = (owner) =>
-      owner || OWNER || dataState.owner || localStorage.getItem(OWNER_KEY) || "general";
+      owner || OWNER || dataState.owner || localStorage.getItem(OWNER_KEY) || appSettings.defaultOwnerId || owners[0]?.id || "";
 
     const getCacheKey = ({ owner, periodKey, start, end }) => {
       const s = toDate(start).getTime();
@@ -3459,7 +3851,7 @@
       try {
         const qRange = query(
           getUserCollection("expenses"),
-          where("owner", "==", o),
+          where("ownerId", "==", o),
           where("type", "==", type),
           where("date", ">=", rangeStart),
           where("date", "<=", rangeEnd),
@@ -3634,6 +4026,7 @@
       if(vid.includes('hist')) document.getElementById('nav-hist').classList.add('active');
       if(vid.includes('msi')) document.getElementById('nav-msi').classList.add('active');
       if(vid.includes('goals')) document.getElementById('nav-goals').classList.add('active');
+      if(vid.includes('settings')) document.getElementById('nav-settings').classList.add('active');
 
       // render MSI cuando entras
       if(vid === 'view-msi' && FEATURES.cards) renderMsi();
@@ -3768,18 +4161,19 @@
       }
       document.getElementById('t-amount').value = amount;
       const catValue = quickCategory?.value || "";
+      const catLabel = catValue ? getCategoryName(catValue) : "";
       if(catValue){
         const catSelect = document.getElementById('t-cat');
         const hasOption = [...catSelect.options].some((opt) => opt.value === catValue);
         if(!hasOption){
           const opt = document.createElement("option");
           opt.value = catValue;
-          opt.textContent = catValue;
+          opt.textContent = catLabel || catValue;
           catSelect.appendChild(opt);
         }
         catSelect.value = catValue;
       }
-      document.getElementById('t-concept').value = catValue ? `Gasto rápido: ${catValue}` : "Gasto rápido";
+      document.getElementById('t-concept').value = catLabel ? `Gasto rápido: ${catLabel}` : "Gasto rápido";
       document.getElementById('t-date').value = toLocalYYYYMMDD(new Date());
       quickAddPending = true;
       form.requestSubmit();
@@ -3823,17 +4217,17 @@
       const prevCard = selCard.value || "all";
       const prevCat  = selCat.value || "all";
 
-      selCard.innerHTML = `<option value="all">Tarjeta: Todas</option>`;
-      const sortedCards = [...cards].sort((a,b)=>(a.name||"").localeCompare(b.name||"","es"));
+      selCard.innerHTML = `<option value="all">Cuenta: Todas</option>`;
+      const sortedCards = [...accounts].sort((a,b)=>(a.name||"").localeCompare(b.name||"","es"));
       sortedCards.forEach(c=>{
         const opt=document.createElement('option');
         opt.value=c.id;
-        opt.textContent = c.owner==="both" ? `${c.name} (Compartida)` : c.name;
+        opt.textContent = c.name;
         selCard.appendChild(opt);
       });
 
       selCat.innerHTML = `<option value="all">Categoría: Todas</option>`;
-      const cats = [...new Set(trans.map(t => (t.category || '').trim()).filter(Boolean))]
+      const cats = [...new Set(trans.map(t => (t.categoryName || t.category || '').trim()).filter(Boolean))]
         .sort((a,b)=>a.localeCompare(b,"es"));
       cats.forEach(c=>{
         const opt=document.createElement('option');
@@ -3860,52 +4254,258 @@
       renderHistory();
     };
 
-    // Seed preset cards (MANUAL, solo desarrollo)
-    async function seedPresetCards(){
-      const seedButton = document.getElementById("load-demo-btn");
-      try{
-        setLoading(seedButton, true, { label: "Cargando..." });
-        const existingSnap = await getDocs(query(getUserCollection("cards")));
-        const existingByOwner = { general: new Set(), equipo: new Set() };
+    function formatLimitNote(type, count){
+      const limit = appSettings?.limits?.[type];
+      if(!limit) return "";
+      if(appSettings?.plan === "free" && count >= limit){
+        return `Límite free: ${count}/${limit}. Actualiza a Pro para agregar más.`;
+      }
+      return `Límite ${appSettings?.plan || "free"}: ${count}/${limit}`;
+    }
 
-        existingSnap.forEach(d=>{
-          const data=d.data();
-          const name=(data.name||"").toLowerCase().trim();
-          const owner=(data.owner||"general");
-          if(existingByOwner[owner]) existingByOwner[owner].add(name);
-        });
-
-        const need=PRESET_CARDS.filter(c=>c.owner===OWNER);
-        for(const c of need){
-          const nm=c.name.toLowerCase();
-          const bucket=existingByOwner[c.owner]||new Set();
-          if(!bucket.has(nm)){
-            await addDoc(getUserCollection("cards"), {
-              name:c.name,
-              owner:c.owner,
-              cutDay:1, payDay:1, limit:0, balance:0, payGoal:0
-            });
-            bucket.add(nm);
-          }
-        }
-        showToast("Demo cargada manualmente.", { tone: "success", duration: 2400 });
-      }catch(e){
-        console.error("Seed preset cards error:", e);
-        showToast("Aviso: no se pudieron cargar tarjetas demo.", { tone: "warning", duration: 3200 });
-        haptic("warn");
-      }finally{
-        setLoading(seedButton, false);
+    function updateOwnerSelect(){
+      if(!ownerSelect) return;
+      const activeOwners = owners.filter(o=>o.isActive !== false);
+      ownerSelect.innerHTML = "";
+      activeOwners.forEach((o)=>{
+        const opt = document.createElement("option");
+        opt.value = o.id;
+        opt.textContent = o.name;
+        ownerSelect.appendChild(opt);
+      });
+      const preferred = OWNER || appSettings.defaultOwnerId || activeOwners[0]?.id || "";
+      if(preferred){
+        ownerSelect.value = preferred;
+        OWNER = ownerSelect.value;
+        localStorage.setItem(OWNER_KEY, OWNER);
+        setState({ owner: OWNER });
+        dataState.owner = OWNER;
       }
     }
 
-    const demoSeedButton = document.getElementById("load-demo-btn");
-    if(demoSeedButton){
-      demoSeedButton.addEventListener("click", () => {
-        const demoSeedEnabled = typeof DEV_FEATURES !== "undefined" && DEV_FEATURES.demoSeed;
-        if(!demoSeedEnabled) return;
-        seedPresetCards();
+    function renderSettingsOwners(){
+      const list = document.getElementById("settings-owners-list");
+      if(!list) return;
+      if(!owners.length){
+        list.innerHTML = "<small class=\"text-muted\">Sin personas aún.</small>";
+      }else{
+        list.innerHTML = owners.map((owner)=>`
+          <div class="list-item">
+            <div>
+              <div class="fw-bold">${owner.name}</div>
+              <div class="text-muted small">${owner.color ? `Color: ${owner.color}` : "Sin color"}</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" ${owner.isActive !== false ? "checked" : ""} onchange="toggleOwnerActive('${owner.id}', this.checked)" />
+              </div>
+              <button class="btn btn-sm btn-outline-secondary" type="button" onclick="editOwner('${owner.id}')">Editar</button>
+            </div>
+          </div>
+        `).join("");
+      }
+      const note = document.getElementById("owners-limit-note");
+      if(note){
+        note.textContent = formatLimitNote("owners", owners.length);
+      }
+    }
+
+    function renderSettingsAccounts(){
+      const list = document.getElementById("settings-accounts-list");
+      if(!list) return;
+      if(!accounts.length){
+        list.innerHTML = "<small class=\"text-muted\">Sin cuentas aún.</small>";
+      }else{
+        list.innerHTML = accounts.map((account)=>`
+          <div class="list-item">
+            <div>
+              <div class="fw-bold">${account.name}</div>
+              <div class="text-muted small">${account.bank || "Banco no definido"} ${account.last4 ? `• ${account.last4}` : ""}</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" ${account.isActive !== false ? "checked" : ""} onchange="toggleAccountActive('${account.id}', this.checked)" />
+              </div>
+              <button class="btn btn-sm btn-outline-secondary" type="button" onclick="editAccount('${account.id}')">Editar</button>
+            </div>
+          </div>
+        `).join("");
+      }
+      const note = document.getElementById("accounts-limit-note");
+      if(note){
+        note.textContent = formatLimitNote("accounts", accounts.length);
+      }
+    }
+
+    function getActiveSettingsCategoryKind(){
+      const checked = document.querySelector('input[name="settings-cat-tab"]:checked');
+      return checked?.value || "expense";
+    }
+
+    function renderSettingsCategories(){
+      const list = document.getElementById("settings-categories-list");
+      if(!list) return;
+      const kind = getActiveSettingsCategoryKind();
+      const filtered = categories.filter((cat)=>cat.kind === kind);
+      if(!filtered.length){
+        list.innerHTML = "<small class=\"text-muted\">Sin categorías aún.</small>";
+      }else{
+        list.innerHTML = filtered.map((cat, index)=>`
+          <div class="list-item">
+            <div>
+              <div class="fw-bold">${cat.icon ? `${cat.icon} ` : ""}${cat.name}</div>
+              <div class="text-muted small">Orden: ${cat.order ?? index + 1}</div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-sm btn-outline-secondary" type="button" onclick="moveCategory('${cat.id}', -1)">↑</button>
+              <button class="btn btn-sm btn-outline-secondary" type="button" onclick="moveCategory('${cat.id}', 1)">↓</button>
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" ${cat.isActive !== false ? "checked" : ""} onchange="toggleCategoryActive('${cat.id}', this.checked)" />
+              </div>
+              <button class="btn btn-sm btn-outline-secondary" type="button" onclick="editCategory('${cat.id}')">Editar</button>
+            </div>
+          </div>
+        `).join("");
+      }
+      const note = document.getElementById("categories-limit-note");
+      if(note){
+        note.textContent = formatLimitNote("categories", categories.length);
+      }
+    }
+
+    window.toggleOwnerActive = async (id, isActive) => {
+      await updateDoc(getUserDoc("owners", id), { isActive });
+    };
+
+    window.editOwner = async (id) => {
+      const owner = owners.find(o=>o.id === id);
+      if(!owner) return;
+      const next = prompt("Nuevo nombre", owner.name);
+      if(next && next.trim()){
+        await updateDoc(getUserDoc("owners", id), { name: next.trim() });
+      }
+    };
+
+    window.toggleAccountActive = async (id, isActive) => {
+      await updateDoc(getUserDoc("accounts", id), { isActive });
+    };
+
+    window.editAccount = async (id) => {
+      const account = accounts.find(a=>a.id === id);
+      if(!account) return;
+      const next = prompt("Nuevo nombre de cuenta", account.name);
+      if(next && next.trim()){
+        await updateDoc(getUserDoc("accounts", id), { name: next.trim() });
+      }
+    };
+
+    window.toggleCategoryActive = async (id, isActive) => {
+      await updateDoc(getUserDoc("categories", id), { isActive });
+    };
+
+    window.editCategory = async (id) => {
+      const category = categories.find(c=>c.id === id);
+      if(!category) return;
+      const next = prompt("Nuevo nombre de categoría", category.name);
+      if(next && next.trim()){
+        await updateDoc(getUserDoc("categories", id), { name: next.trim() });
+      }
+    };
+
+    window.moveCategory = async (id, direction) => {
+      const kind = getActiveSettingsCategoryKind();
+      const list = categories.filter(cat=>cat.kind === kind).sort((a,b)=> (a.order ?? 0) - (b.order ?? 0));
+      const index = list.findIndex(cat=>cat.id === id);
+      const swapIndex = index + direction;
+      if(index < 0 || swapIndex < 0 || swapIndex >= list.length) return;
+      const current = list[index];
+      const target = list[swapIndex];
+      const batch = writeBatch(db);
+      batch.update(getUserDoc("categories", current.id), { order: target.order ?? swapIndex });
+      batch.update(getUserDoc("categories", target.id), { order: current.order ?? index });
+      await batch.commit();
+    };
+
+    const addOwnerBtn = document.getElementById("add-owner-btn");
+    if(addOwnerBtn){
+      addOwnerBtn.addEventListener("click", async () => {
+        const input = document.getElementById("new-owner-name");
+        const name = input?.value.trim();
+        if(!name) return;
+        const limit = appSettings?.limits?.owners;
+        if(appSettings?.plan === "free" && limit && owners.length >= limit){
+          showToast("Actualiza a Pro para agregar más personas.", { tone: "warning", duration: 2400 });
+          return;
+        }
+        await addDoc(getUserCollection("owners"), {
+          name,
+          color: null,
+          createdAt: serverTimestamp(),
+          isActive: true
+        });
+        input.value = "";
       });
     }
+
+    const addAccountBtn = document.getElementById("add-account-btn");
+    if(addAccountBtn){
+      addAccountBtn.addEventListener("click", async () => {
+        const name = document.getElementById("new-account-name")?.value.trim();
+        const type = document.getElementById("new-account-type")?.value || "other";
+        const last4 = document.getElementById("new-account-last4")?.value.trim() || null;
+        const bank = document.getElementById("new-account-bank")?.value.trim() || null;
+        if(!name) return;
+        const limit = appSettings?.limits?.accounts;
+        if(appSettings?.plan === "free" && limit && accounts.length >= limit){
+          showToast("Actualiza a Pro para agregar más cuentas.", { tone: "warning", duration: 2400 });
+          return;
+        }
+        await addDoc(getUserCollection("accounts"), {
+          name,
+          type,
+          last4,
+          bank,
+          isActive: true,
+          createdAt: serverTimestamp()
+        });
+        document.getElementById("new-account-name").value = "";
+        document.getElementById("new-account-last4").value = "";
+        document.getElementById("new-account-bank").value = "";
+      });
+    }
+
+    const addCategoryBtn = document.getElementById("add-category-btn");
+    if(addCategoryBtn){
+      addCategoryBtn.addEventListener("click", async () => {
+        const name = document.getElementById("new-category-name")?.value.trim();
+        const icon = document.getElementById("new-category-icon")?.value.trim() || null;
+        const kind = getActiveSettingsCategoryKind();
+        if(!name) return;
+        const limit = appSettings?.limits?.categories;
+        if(appSettings?.plan === "free" && limit && categories.length >= limit){
+          showToast("Actualiza a Pro para agregar más categorías.", { tone: "warning", duration: 2400 });
+          return;
+        }
+        const maxOrder = Math.max(...categories.filter(cat=>cat.kind === kind).map(cat=>cat.order ?? 0), -1);
+        await addDoc(getUserCollection("categories"), {
+          name,
+          kind,
+          icon,
+          order: maxOrder + 1,
+          isActive: true,
+          createdAt: serverTimestamp()
+        });
+        document.getElementById("new-category-name").value = "";
+        document.getElementById("new-category-icon").value = "";
+      });
+    }
+
+    const categoryTabs = document.querySelectorAll('input[name="settings-cat-tab"]');
+    categoryTabs.forEach((tab)=>{
+      tab.addEventListener("change", () => {
+        renderSettingsCategories();
+      });
+    });
 
     // Subscribe helpers
     function resubscribeAll(){
@@ -3914,7 +4514,10 @@
         console.warn("resubscribeAll: usuario no autenticado.");
         return;
       }
-      if(FEATURES.cards) subscribeCards();
+      subscribeSettings();
+      subscribeOwners();
+      subscribeCategories();
+      subscribeCards();
       subscribeTrans();
       if(FEATURES.goals) subscribeGoals();
       resetForm();
@@ -3924,10 +4527,86 @@
       if(FEATURES.monthlyFootprint) updateMonthlyFootprint({ force: true });
     }
 
-    // Cards subscribe (front filter)
+    function subscribeSettings(){
+      if(unsubSettings){
+        unsubSettings();
+        unsubSettings = null;
+      }
+      unsubSettings = onSnapshot(getAppSettingsDoc(), (snap)=>{
+        if(snap.exists()){
+          appSettings = { ...appSettings, ...snap.data() };
+          renderSettingsOwners();
+          renderSettingsAccounts();
+          renderSettingsCategories();
+          uiUpdateCats();
+          const accountSelect = document.getElementById('t-card');
+          if(accountSelect && appSettings.defaultAccountId){
+            accountSelect.value = appSettings.defaultAccountId;
+          }
+        }
+      }, (err)=>{
+        console.warn("Settings snapshot error:", err);
+      });
+    }
+
+    function subscribeOwners(){
+      const qOwners = query(getUserCollection("owners"), orderBy("createdAt"));
+      unsubOwners = onSnapshot(qOwners, (snap)=>{
+        owners = [];
+        snap.forEach((docSnap)=>{
+          const data = docSnap.data();
+          owners.push({ id: docSnap.id, ...data });
+        });
+        updateOwnerSelect();
+        renderSettingsOwners();
+        const goalOwnerSelect = document.getElementById("goal-contribution-owner");
+        if(goalOwnerSelect){
+          const prev = goalOwnerSelect.value;
+          goalOwnerSelect.innerHTML = "";
+          owners.filter(o=>o.isActive !== false).forEach((owner)=>{
+            const opt = document.createElement("option");
+            opt.value = owner.id;
+            opt.textContent = owner.name;
+            goalOwnerSelect.appendChild(opt);
+          });
+          if(prev && [...goalOwnerSelect.options].some(o=>o.value === prev)){
+            goalOwnerSelect.value = prev;
+          }else if(goalOwnerSelect.options.length){
+            goalOwnerSelect.selectedIndex = 0;
+          }
+        }
+      }, (err)=>{
+        console.error("Owners snapshot error:", err);
+        showStartupError(`Error leyendo personas: ${getFirestoreErrorMessage(err)}`);
+      });
+    }
+
+    function subscribeCategories(){
+      const qCategories = query(getUserCollection("categories"), orderBy("kind"), orderBy("order"));
+      unsubCategories = onSnapshot(qCategories, (snap)=>{
+        categories = [];
+        snap.forEach((docSnap)=>{
+          const data = docSnap.data();
+          categories.push({ id: docSnap.id, ...data });
+        });
+        trans.forEach((t)=>{
+          if(t.categoryId){
+            t.categoryName = getCategoryName(t.categoryId);
+            t.category = t.categoryName;
+          }
+        });
+        renderSettingsCategories();
+        uiUpdateCats();
+      }, (err)=>{
+        console.error("Categories snapshot error:", err);
+        showStartupError(`Error leyendo categorías: ${getFirestoreErrorMessage(err)}`);
+      });
+    }
+
+    // Accounts subscribe (front filter)
     function subscribeCards(){
-      setLoaderMsg("Cargando tarjetas...");
-      const qCards=query(getUserCollection("cards"), orderBy("name"));
+      setLoaderMsg("Cargando cuentas...");
+      const qCards=query(getUserCollection("accounts"), orderBy("name"));
       let firstSnapshot = true;
       unsubCards = onSnapshot(qCards, (snap)=>{
         if(firstSnapshot){
@@ -3937,9 +4616,8 @@
         const tempAll=[];
         snap.forEach(d=>{ const c=d.data(); c.id=d.id; tempAll.push(c); });
 
-        const temp=tempAll.filter(c=>c.owner===OWNER || c.owner==="both");
-
         cards=[];
+        accounts=[];
         let tDebt=0, tLimit=0;
 
         const listHome=document.getElementById('home-card-list');
@@ -3950,14 +4628,15 @@
         const prevSel=select.value;
 
         select.innerHTML='';
-        const optG_Y=document.createElement('optgroup'); optG_Y.label="Tarjetas generales";
-        const optG_H=document.createElement('optgroup'); optG_H.label="Tarjetas de equipo";
-        const optG_B=document.createElement('optgroup'); optG_B.label="Compartidas";
-
-        temp.sort((a,b)=>(a.name||"").localeCompare(b.name||"","es"));
+        const temp = [...tempAll].sort((a,b)=>(a.name||"").localeCompare(b.name||"","es"));
+        const visibleAccounts = temp.filter(c=>c.isActive !== false);
 
         temp.forEach(c=>{
           cards.push(c);
+          accounts.push(c);
+        });
+
+        visibleAccounts.forEach(c=>{
 
           const debt=parseFloat(c.balance||0);
           const limit=parseFloat(c.limit||0);
@@ -4001,17 +4680,12 @@
           const opt=document.createElement("option");
           opt.value=c.id;
           opt.textContent=c.name;
-
-          if(c.owner==="general") optG_Y.appendChild(opt);
-          else if(c.owner==="equipo") optG_H.appendChild(opt);
-          else optG_B.appendChild(opt);
+          select.appendChild(opt);
         });
 
-        if(optG_Y.children.length) select.appendChild(optG_Y);
-        if(optG_H.children.length) select.appendChild(optG_H);
-        if(optG_B.children.length) select.appendChild(optG_B);
-
-        if(prevSel) select.value=prevSel;
+        if(appSettings.defaultAccountId && [...select.options].some(opt=>opt.value === appSettings.defaultAccountId)){
+          select.value = appSettings.defaultAccountId;
+        }else if(prevSel) select.value=prevSel;
         if(!select.value && select.options.length) select.selectedIndex=0;
 
         document.getElementById('total-debt').innerText=formatMoney(tDebt);
@@ -4030,10 +4704,11 @@
         updatePaymentMonitor();
         updateAlerts();
         fillHistFilters();
+        renderSettingsAccounts();
 
       }, (err)=>{
         console.error("Cards snapshot error:", err);
-        showStartupError(`Error leyendo tarjetas: ${getFirestoreErrorMessage(err)}`);
+        showStartupError(`Error leyendo cuentas: ${getFirestoreErrorMessage(err)}`);
       });
     }
 
@@ -4052,6 +4727,21 @@
           const t=d.data();
           t.id=d.id;
           t.scope = normalizeScope(t.scope);
+          t.ownerId = t.ownerId || t.owner || null;
+          t.accountId = t.accountId || t.cardId || null;
+          t.categoryId = t.categoryId || null;
+          if(!t.categoryName && t.categoryId){
+            t.categoryName = getCategoryName(t.categoryId);
+          }
+          if(!t.ownerName && t.ownerId){
+            t.ownerName = getOwnerLabel(t.ownerId);
+          }
+          if(!t.accountName && t.accountId){
+            t.accountName = getAccountLabel(t.accountId);
+          }
+          if(!t.category && t.categoryName){
+            t.category = t.categoryName;
+          }
           trans.push(t);
         });
 
@@ -4146,7 +4836,7 @@
 
     const getLocalDateInputValue = (date = new Date()) => toLocalYYYYMMDD(date);
 
-    const formatGoalOwner = (owner) => owner === "equipo" ? "Equipo" : "General";
+    const formatGoalOwner = (ownerId) => getOwnerLabel(ownerId);
 
     const buildGoalsQuery = () => {
       const whereFields = [
@@ -4336,7 +5026,7 @@
           const amount = Number(contrib.amount || 0);
           const date = contrib.date?.toDate ? contrib.date.toDate() : null;
           const dateLabel = date ? date.toLocaleDateString() : "Sin fecha";
-          const ownerLabel = formatGoalOwner(contrib.owner);
+          const ownerLabel = formatGoalOwner(contrib.ownerId || contrib.owner);
           const note = contrib.note ? ` · ${contrib.note}` : "";
           listEl.innerHTML += `
             <div class="goal-contrib-item mb-2">
@@ -4457,7 +5147,7 @@
       const noteInput = document.getElementById("goal-contribution-note");
       if(idInput) idInput.value = goalId;
       if(amountInput) amountInput.value = "";
-      if(ownerInput) ownerInput.value = OWNER || "general";
+      if(ownerInput) ownerInput.value = OWNER || appSettings.defaultOwnerId || "";
       if(dateInput) dateInput.value = getLocalDateInputValue();
       if(noteInput) noteInput.value = "";
       if(!goalContributionModal){
@@ -4634,6 +5324,7 @@
       let hasGoals=false;
 
       cards.forEach(c=>{
+        if(c.isActive === false) return;
         const goal=parseFloat(c.payGoal||0);
         if(goal<=0) return;
 
@@ -5050,7 +5741,7 @@
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <div class="fw-bold">${t.concept || 'Compra MSI'}</div>
-                  <small class="text-muted">${t.cardName || ''} • Inicio: ${t.start.toLocaleDateString()} • ${t.totalMonths} MSI</small>
+                  <small class="text-muted">${t.accountName || t.cardName || ''} • Inicio: ${t.start.toLocaleDateString()} • ${t.totalMonths} MSI</small>
                 </div>
                 <div class="text-end">
                   <div class="fw-black sensitive-data">${t.remaining === 0 ? '✅ Liquidada' : `${t.remaining} meses`}</div>
@@ -5168,7 +5859,7 @@
                   <div class="me-3 text-muted"><i class="fas ${isExp ? "fa-shopping-cart" : "fa-hand-holding-usd"}"></i></div>
                   <div>
                     <div class="fw-bold">${t.concept}${tagMsi}</div>
-                    <small class="text-muted">${d.toLocaleDateString()} • ${t.cardName} • ${t.category}</small>
+                    <small class="text-muted">${d.toLocaleDateString()} • ${t.accountName || t.cardName || "Cuenta"} • ${t.categoryName || t.category || "Sin categoría"}</small>
                   </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
@@ -5206,8 +5897,8 @@
       const filtered = scopedTrans.filter(t => {
         const matchesText =
           (t.concept || "").toLowerCase().includes(term) ||
-          (t.cardName || "").toLowerCase().includes(term) ||
-          (t.category || "").toLowerCase().includes(term);
+          (t.accountName || t.cardName || "").toLowerCase().includes(term) ||
+          (t.categoryName || t.category || "").toLowerCase().includes(term);
 
         let matchesDate = true;
         if (dateFilter !== 'all') {
@@ -5217,10 +5908,10 @@
         }
 
         let matchesCard = true;
-        if (cardFilter !== 'all') matchesCard = (t.cardId === cardFilter);
+        if (cardFilter !== 'all') matchesCard = ((t.accountId || t.cardId) === cardFilter);
 
         let matchesCat = true;
-        if (catFilter !== 'all') matchesCat = (t.category === catFilter);
+        if (catFilter !== 'all') matchesCat = ((t.categoryName || t.category) === catFilter);
 
         return matchesText && matchesDate && matchesCard && matchesCat;
       });
@@ -5547,13 +6238,55 @@
     window.uiUpdateCats=()=>{
       const type=document.querySelector('input[name="ttype"]:checked').value;
       const s=document.getElementById('t-cat');
+      if(!s) return;
+      const prevValue = s.value;
       s.innerHTML='';
-      const opts = type==='expense'
-        ? ['🛒 Supermercado','🍔 Comida','⛽ Transporte','🐜 Hormiga','💡 Servicios','📦 Compras','💊 Salud','🎓 Educación','👩‍🦰 Mamá']
-        : ['💵 Abono Capital','💰 Sueldo/Ingreso','🔄 Transferencia'];
-      opts.forEach(o=> s.innerHTML += `<option>${o}</option>`);
+      const kind = type === "expense" ? "expense" : "income";
+      const list = categories
+        .filter(cat => cat.kind === kind && cat.isActive !== false)
+        .sort((a,b)=> (a.order ?? 0) - (b.order ?? 0));
+      if(!list.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Sin categorías";
+        s.appendChild(opt);
+      }else{
+        list.forEach(cat=>{
+          const opt = document.createElement("option");
+          opt.value = cat.id;
+          opt.textContent = `${cat.icon ? `${cat.icon} ` : ""}${cat.name}`;
+          s.appendChild(opt);
+        });
+      }
+      if(prevValue && [...s.options].some(o=>o.value === prevValue)){
+        s.value = prevValue;
+      }else if(kind === "expense" && appSettings.defaultExpenseCategoryId){
+        s.value = appSettings.defaultExpenseCategoryId;
+      }else if(kind === "income" && appSettings.defaultIncomeCategoryId){
+        s.value = appSettings.defaultIncomeCategoryId;
+      }
       if(typeof syncQuickCategories === "function") syncQuickCategories();
     };
+
+    function getOwnerLabel(ownerId){
+      const owner = owners.find(o=>o.id === ownerId);
+      return owner?.name || ownerId || "Sin persona";
+    }
+
+    function getAccountLabel(accountId){
+      const account = accounts.find(a=>a.id === accountId);
+      if(!account) return "Cuenta";
+      return account.name;
+    }
+
+    function getCategoryById(categoryId){
+      return categories.find(c=>c.id === categoryId) || null;
+    }
+
+    function getCategoryName(categoryId){
+      const category = getCategoryById(categoryId);
+      return category?.name || "Sin categoría";
+    }
 
     // =========================
     // ✅ UI MSI
@@ -5619,13 +6352,14 @@
     function txToPlain(t){
       return {
         id: t.id,
-        owner: t.owner,
+        ownerId: t.ownerId || t.owner,
         type: t.type,
         amount: t.amount,
-        cardId: t.cardId,
-        cardName: t.cardName,
+        accountId: t.accountId || t.cardId,
+        accountName: t.accountName || t.cardName,
         concept: t.concept,
-        category: t.category,
+        categoryId: t.categoryId,
+        categoryName: t.categoryName || t.category,
         scope: t.scope || null,
         isMsi: !!t.isMsi,
         msiMonths: t.msiMonths || null,
@@ -5636,8 +6370,10 @@
     function cardToPlain(c){
       return {
         id: c.id,
-        owner: c.owner,
         name: c.name,
+        type: c.type || "other",
+        bank: c.bank || null,
+        last4: c.last4 || null,
         cutDay: Number(c.cutDay||1),
         payDay: Number(c.payDay||1),
         limit: Number(c.limit||0),
@@ -5646,9 +6382,9 @@
       };
     }
 
-    // Tarjetas (editar)
+    // Cuentas (editar)
     window.openCardModal=()=> {
-      showToast("Tip: para editar, toca una tarjeta en la lista y se abrirá el editor 😉", {
+      showToast("Tip: para editar, toca una cuenta en la lista y se abrirá el editor 😉", {
         tone: "info",
         duration: 2600
       });
@@ -5682,7 +6418,7 @@
       document.getElementById('c-limit').value=c.limit;
       document.getElementById('c-bal').value=c.balance;
       document.getElementById('c-goal').value=c.payGoal||0;
-      document.getElementById('btn-del-card').style.display = (c.owner==="both") ? "none" : "block";
+      document.getElementById('btn-del-card').style.display = "block";
       cardModal = new bootstrap.Modal(document.getElementById('modalCard'));
       cardModal.show();
     };
@@ -5700,7 +6436,7 @@
         payGoal: parseFloat(document.getElementById('c-goal').value||0)
       };
 
-      await updateDoc(getUserDoc("cards", id), payload);
+      await updateDoc(getUserDoc("accounts", id), payload);
       cardModal.hide();
 
       const updated = cards.find(x=>x.id===id);
@@ -5752,7 +6488,7 @@
       e.preventDefault();
       const goalId = document.getElementById('goal-contribution-id').value;
       const amount = parseFloat(document.getElementById('goal-contribution-amount').value || 0);
-      const owner = document.getElementById('goal-contribution-owner').value || OWNER;
+      const ownerId = document.getElementById('goal-contribution-owner').value || OWNER;
       const noteRaw = document.getElementById('goal-contribution-note').value.trim();
       const dateValue = document.getElementById('goal-contribution-date').value;
       if(!goalId || !Number.isFinite(amount) || amount <= 0){
@@ -5764,7 +6500,8 @@
         await addDoc(getUserCollection("goal_contributions"), {
           goalId,
           amount,
-          owner,
+          ownerId,
+          ownerName: getOwnerLabel(ownerId),
           note: noteRaw || null,
           date: Timestamp.fromDate(date),
           createdAt: serverTimestamp()
@@ -5793,12 +6530,8 @@
       const id=document.getElementById('c-id').value;
       const c=cards.find(x=>x.id===id);
       if(!c) return;
-      if(c.owner==="both"){
-        showToast("Esa tarjeta es compartida. Mejor edítala 😉", { tone: "info", duration: 2400 });
-        return;
-      }
-      if(confirm("¿Eliminar tarjeta?")){
-        await deleteDoc(getUserDoc("cards", id));
+      if(confirm("¿Eliminar cuenta?")){
+        await updateDoc(getUserDoc("accounts", id), { isActive: false });
         cardModal.hide();
 
         await sheetsSend({
@@ -5820,10 +6553,11 @@
 
       const type=document.querySelector('input[name="ttype"]:checked')?.value;
       const amt=parseFloat(document.getElementById('t-amount').value);
-      const cid=FEATURES.cards ? document.getElementById('t-card').value : null;
+      const accountId=FEATURES.cards ? document.getElementById('t-card').value : null;
       const cardNameInput = document.getElementById('t-card-name')?.value?.trim();
+      const categoryId = document.getElementById('t-cat').value;
       const dateValue = document.getElementById('t-date').value;
-      if(!type || !dateValue || !Number.isFinite(amt) || amt <= 0 || (FEATURES.cards && !cid)){
+      if(!type || !dateValue || !Number.isFinite(amt) || amt <= 0 || (FEATURES.cards && !accountId)){
         showToast("Completa los datos requeridos para guardar.", { tone: "warning", duration: 2400 });
         haptic("error");
         return;
@@ -5833,9 +6567,10 @@
 
       try{
         const tid=document.getElementById('trans-id').value;
-        const cObj = FEATURES.cards ? cards.find(c=>c.id===cid) : null;
-        if(FEATURES.cards && !cObj) throw new Error("Tarjeta no encontrada");
+        const cObj = FEATURES.cards ? cards.find(c=>c.id===accountId) : null;
+        if(FEATURES.cards && !cObj) throw new Error("Cuenta no encontrada");
         const previousTrans = tid ? trans.find(t=>t.id===tid) : null;
+        const categoryObj = categoryId ? getCategoryById(categoryId) : null;
 
         // Reversión si es edición
         let newBal = null;
@@ -5844,7 +6579,7 @@
           newBal = parseFloat(cObj.balance||0);
           batch = writeBatch(db);
           if(tid){
-            if(previousTrans && previousTrans.cardId===cid){
+            if(previousTrans && (previousTrans.cardId===accountId || previousTrans.accountId === accountId)){
               if(previousTrans.type==='expense') newBal -= previousTrans.amount;
               else newBal += previousTrans.amount;
             }
@@ -5865,13 +6600,18 @@
           : null;
 
         const payload = {
-          owner: OWNER,
+          ownerId: OWNER,
+          ownerName: getOwnerLabel(OWNER),
           amount: amt,
           type,
-          cardId: FEATURES.cards ? cid : null,
+          accountId: FEATURES.cards ? accountId : null,
+          accountName: FEATURES.cards ? cObj.name : (cardNameInput || null),
+          cardId: FEATURES.cards ? accountId : null,
           cardName: FEATURES.cards ? cObj.name : (cardNameInput || null),
           concept: document.getElementById('t-concept').value,
-          category: document.getElementById('t-cat').value,
+          categoryId: categoryId || null,
+          categoryName: categoryObj ? categoryObj.name : null,
+          category: categoryObj ? categoryObj.name : null,
           date: Timestamp.fromDate(parseLocalYYYYMMDDToDate(document.getElementById('t-date').value) || new Date()),
           scope: scopeValue,
 
@@ -5883,7 +6623,7 @@
 
         if(tid){
           if(FEATURES.cards && batch){
-            const cardRef=getUserDoc("cards", cid);
+            const cardRef=getUserDoc("accounts", accountId);
             batch.update(getUserDoc("expenses", tid), payload);
             batch.update(cardRef, { balance:newBal });
             await batch.commit();
@@ -5902,7 +6642,7 @@
         }else{
           const createdRef = await addDoc(getUserCollection("expenses"), payload);
           if(FEATURES.cards){
-            const cardRef=getUserDoc("cards", cid);
+            const cardRef=getUserDoc("accounts", accountId);
             await updateDoc(cardRef, { balance:newBal });
           }
 
@@ -5964,7 +6704,7 @@
       document.getElementById('trans-id').value=id;
       document.getElementById('t-amount').value=t.amount;
       if(FEATURES.cards){
-        document.getElementById('t-card').value=t.cardId;
+        document.getElementById('t-card').value=t.accountId || t.cardId;
       }else{
         const cardNameInput = document.getElementById('t-card-name');
         if(cardNameInput) cardNameInput.value = t.cardName || "";
@@ -5977,7 +6717,15 @@
       else document.getElementById('t-exp').checked=true;
 
       uiUpdateCats();
-      document.getElementById('t-cat').value=t.category;
+      const catSelect = document.getElementById('t-cat');
+      if(catSelect){
+        if(t.categoryId && [...catSelect.options].some(opt=>opt.value === t.categoryId)){
+          catSelect.value = t.categoryId;
+        }else if(t.categoryName){
+          const match = categories.find(cat=>cat.name === t.categoryName);
+          if(match) catSelect.value = match.id;
+        }
+      }
       uiToggleScope();
       const scopeValue = normalizeScope(t.scope);
       if(scopeValue === "personal"){
@@ -6011,9 +6759,9 @@
       if(!t) return;
 
       if(FEATURES.cards){
-        const cObj=cards.find(c=>c.id===t.cardId);
+        const cObj=cards.find(c=>c.id===t.accountId || c.id===t.cardId);
         if(!cObj){
-          showToast("Tarjeta no encontrada para recalcular saldo.", { tone: "warning", duration: 2400 });
+          showToast("Cuenta no encontrada para recalcular saldo.", { tone: "warning", duration: 2400 });
           return;
         }
 
@@ -6022,7 +6770,7 @@
         else newBal += t.amount;
 
         const batch=writeBatch(db);
-        batch.update(getUserDoc("cards", t.cardId), { balance:newBal });
+        batch.update(getUserDoc("accounts", t.accountId || t.cardId), { balance:newBal });
         batch.delete(getUserDoc("expenses", id));
         await batch.commit();
       }else{
@@ -6060,6 +6808,14 @@
 
       // MSI defaults
       uiUpdateCats();
+      const accountSelect = document.getElementById('t-card');
+      if(accountSelect && appSettings.defaultAccountId){
+        accountSelect.value = appSettings.defaultAccountId;
+      }
+      const catSelect = document.getElementById('t-cat');
+      if(catSelect && appSettings.defaultExpenseCategoryId){
+        catSelect.value = appSettings.defaultExpenseCategoryId;
+      }
       uiToggleMsi();
       uiToggleScope();
       document.getElementById('t-scope-shared').checked = true;
@@ -6074,13 +6830,13 @@
     };
 
     window.exportCSV=()=>{
-      let csv="Fecha,Concepto,Categoria,Monto,Tipo,Tarjeta,Owner,Scope,MSI,MSI_Meses,MSI_Inicio\n";
+      let csv="Fecha,Concepto,Categoria,Monto,Tipo,Cuenta,Persona,Scope,MSI,MSI_Meses,MSI_Inicio\n";
       trans.forEach(t=>{
         const msi = t.isMsi ? "SI" : "NO";
         const msiMonths = t.msiMonths || "";
         const msiStart = t.msiStart?.toDate ? t.msiStart.toDate().toLocaleDateString() : "";
         const scope = t.scope ? t.scope : "";
-        csv += `${t.date.toDate().toLocaleDateString()},${(t.concept||"").replaceAll(","," ")},${(t.category||"").replaceAll(","," ")},${t.amount},${t.type},${(t.cardName||"").replaceAll(","," ")},${t.owner},${scope},${msi},${msiMonths},${msiStart}\n`;
+        csv += `${t.date.toDate().toLocaleDateString()},${(t.concept||"").replaceAll(","," ")},${(t.categoryName||t.category||"").replaceAll(","," ")},${t.amount},${t.type},${(t.accountName||t.cardName||"").replaceAll(","," ")},${t.ownerName || t.ownerId || ""},${scope},${msi},${msiMonths},${msiStart}\n`;
       });
       const a=document.createElement('a');
       a.href='data:text/csv;charset=utf-8,'+encodeURI(csv);
