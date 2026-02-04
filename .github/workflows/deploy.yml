@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,9 +27,11 @@ jobs:
         run: npm ci
 
       - name: Write service account
+        working-directory: .
         run: printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" > /tmp/serviceAccount.json
 
       - name: Configure Firebase
+        working-directory: .
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
         run: |
@@ -37,6 +42,7 @@ jobs:
             notify.to="${{ secrets.NOTIFY_TO_EMAIL }}"
 
       - name: Deploy Functions
+        working-directory: .
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
         run: npx firebase-tools deploy --only functions
