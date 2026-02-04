@@ -1,0 +1,42 @@
+name: Deploy Firebase Functions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install functions dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Write service account
+        run: printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" > /tmp/serviceAccount.json
+
+      - name: Configure Firebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
+        run: |
+          npx firebase-tools use finanzas-pwa-saas-pilot
+          npx firebase-tools functions:config:set \
+            sendgrid.key="${{ secrets.SENDGRID_API_KEY }}" \
+            sendgrid.from="${{ secrets.SENDGRID_FROM }}" \
+            notify.to="${{ secrets.NOTIFY_TO_EMAIL }}"
+
+      - name: Deploy Functions
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
+        run: npx firebase-tools deploy --only functions

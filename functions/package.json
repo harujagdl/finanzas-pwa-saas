@@ -1,0 +1,16 @@
+{
+  "name": "finanzas-pwa-functions",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.0",
+    "firebase-admin": "^11.10.1",
+    "firebase-functions": "^4.4.1"
+  },
+  "scripts": {
+    "lint": "echo \"No lint configured\""
+  }
+}

@@ -1422,10 +1422,10 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="fw-black m-0">Historial</h4>
       <div class="text-end">
-        <button class="btn btn-sm btn-outline-secondary btn-disabled" style="border-color:var(--border-color);color:var(--text-muted);" onclick="exportCSV()" type="button">
+        <button class="btn btn-sm btn-outline-secondary btn-disabled" style="border-color:var(--border-color);color:var(--text-muted);" onclick="exportCSV()" type="button" aria-disabled="true">
           <i class="fas fa-file-csv me-1"></i> Descargar CSV (Pro) 🔒
         </button>
-        <div class="small text-muted mt-1">Disponible en el plan Pro</div>
+        <div class="small text-muted mt-1">Adquiere Pro para descargar CSV</div>
       </div>
     </div>
 
@@ -1843,7 +1843,7 @@
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
               <h5 class="fw-black mb-1" id="modalProLabel">Función Pro</h5>
-              <p class="text-muted small mb-0">La descarga de archivos CSV estará disponible en el plan Pro.</p>
+              <p class="text-muted small mb-0">Adquiere Pro para descargar CSV y habilitar reportes avanzados.</p>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
@@ -2199,6 +2199,12 @@
       return shouldOpenAuthFromUrl ? "auth" : "landing";
     }
 
+    function hideAllScreens(){
+      [screenLanding, screenAuth, screenApp].forEach((el) => el?.classList.add("hidden"));
+      if(appRoot) appRoot.classList.add("d-none");
+      if(logoutBtn) logoutBtn.classList.add("d-none");
+    }
+
     function showScreen(mode){
       const screens = {
         landing: screenLanding,
@@ -2291,96 +2297,6 @@
       };
       await setDoc(profileRef, profile, { merge: true });
       return profile;
-    }
-
-    function getProviderLabel(providerId){
-      if(!providerId) return "Email";
-      if(providerId.includes("google")) return "Google";
-      if(providerId.includes("password")) return "Email";
-      return providerId;
-    }
-
-    function getRegisterExtraData(){
-      const nombre = authNameInput?.value?.trim() || "";
-      const telefono = authPhoneInput?.value?.trim() || "";
-      const consentimientoContacto = Boolean(authConsentInput?.checked);
-      return { nombre, telefono, consentimientoContacto };
-    }
-
-    function isNewAuthUser(user){
-      const createdAt = user?.metadata?.creationTime;
-      const lastSignInAt = user?.metadata?.lastSignInTime;
-      return Boolean(createdAt && lastSignInAt && createdAt === lastSignInAt);
-    }
-
-    async function createLeadOnSignup(user, extra){
-      if(!db || !user) return null;
-      const leadRef = doc(db, "leads", user.uid);
-      const existing = await getDoc(leadRef);
-      if(existing.exists()){
-        return existing.data();
-      }
-      const payload = {
-        uid: user.uid,
-        email: user.email || "",
-        displayName: user.displayName || "",
-        nombre: extra?.nombre || "",
-        telefono: extra?.telefono || "",
-        consentimientoContacto: Boolean(extra?.consentimientoContacto),
-        providerId: user.providerData?.[0]?.providerId ?? "password",
-        createdAt: serverTimestamp(),
-        appVersion: APP_VERSION,
-        userAgent: navigator.userAgent
-      };
-      await setDoc(leadRef, payload, { merge: true });
-      return payload;
-    }
-
-    async function notifyAdminNewSignup(leadData){
-      if(!db || !leadData) return;
-      const consentimiento = Boolean(leadData.consentimientoContacto);
-      const nombre = leadData.nombre || "No proporcionado";
-      const telefono = consentimiento ? (leadData.telefono || "No proporcionado") : "No proporcionado";
-      const consentimientoLabel = consentimiento ? "Sí" : "No";
-      const providerLabel = getProviderLabel(leadData.providerId);
-      const timestamp = new Date();
-      const formattedDate = timestamp.toLocaleString("es-MX");
-      const note = consentimiento ? "" : "Sin consentimiento para contacto.";
-
-      const textLines = [
-        "Nuevo registro en Finanzas PWA (Piloto)",
-        `Email: ${leadData.email || "No proporcionado"}`,
-        `Nombre: ${nombre}`,
-        `Teléfono: ${telefono}`,
-        `Consentimiento de contacto: ${consentimientoLabel}`,
-        `Proveedor: ${providerLabel}`,
-        `Fecha/hora: ${formattedDate}`,
-        `UID: ${leadData.uid || "No proporcionado"}`,
-        note
-      ].filter(Boolean);
-
-      const html = `
-        <h2>Nuevo registro en Finanzas PWA (Piloto)</h2>
-        <ul>
-          <li><strong>Email:</strong> ${leadData.email || "No proporcionado"}</li>
-          <li><strong>Nombre:</strong> ${nombre}</li>
-          <li><strong>Teléfono:</strong> ${telefono}</li>
-          <li><strong>Consentimiento de contacto:</strong> ${consentimientoLabel}</li>
-          <li><strong>Proveedor:</strong> ${providerLabel}</li>
-          <li><strong>Fecha/hora:</strong> ${formattedDate}</li>
-          <li><strong>UID:</strong> ${leadData.uid || "No proporcionado"}</li>
-        </ul>
-        ${note ? `<p><em>${note}</em></p>` : ""}
-      `;
-
-      await addDoc(collection(db, "mail"), {
-        to: ["yair.tenorio.silva@gmail.com"],
-        message: {
-          subject: "Nuevo registro en Finanzas PWA (Piloto)",
-          text: textLines.join("\n"),
-          html
-        }
-      });
     }
 
     function getUserCollection(collectionName){
@@ -2911,16 +2827,12 @@
       }
     }
 
-    async function registerUser(email, password, extra){
+    async function registerUser(email, password){
       if(!auth) throw new Error("Auth no disponible");
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       currentUser = { uid: credential.user.uid, email: credential.user.email, displayName: credential.user.displayName || "" };
       window.currentUser = currentUser;
       window.userProfile = await ensureUserProfile(credential.user);
-      if(db){
-        const leadData = await createLeadOnSignup(credential.user, extra);
-        await notifyAdminNewSignup(leadData);
-      }
       if(db){
         try{
           await setDoc(doc(db, "admin", "registrations", credential.user.uid), {
@@ -2970,10 +2882,6 @@
         const result = await signInWithPopup(auth, provider);
         if(result?.user){
           window.userProfile = await ensureUserProfile(result.user);
-          if(isNewAuthUser(result.user) && db){
-            const leadData = await createLeadOnSignup(result.user, getRegisterExtraData());
-            await notifyAdminNewSignup(leadData);
-          }
         }
       }catch(err){
         if(shouldFallbackToRedirect(err)){
@@ -3001,10 +2909,6 @@
         const result = await getRedirectResult(auth);
         if(result?.user){
           window.userProfile = await ensureUserProfile(result.user);
-          if(isNewAuthUser(result.user) && db){
-            const leadData = await createLeadOnSignup(result.user, getRegisterExtraData());
-            await notifyAdminNewSignup(leadData);
-          }
         }
       }catch(err){
         console.warn("Google redirect error:", err?.message || err);
@@ -3090,7 +2994,7 @@
       setAuthMessage("");
       try{
         if(authMode === "register"){
-          await registerUser(email, password, getRegisterExtraData());
+          await registerUser(email, password);
         }else{
           await loginUser(email, password);
         }
@@ -3111,7 +3015,7 @@
         return;
       }
       setAuthMode("login");
-      showScreen(getUnauthenticatedMode());
+      hideAllScreens();
       startLoader();
       setLoaderMsg("Verificando sesión...");
       handleRedirectResult();
