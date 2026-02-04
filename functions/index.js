@@ -40,15 +40,11 @@ function buildLeadPayload({ user, providerIds, createdAt, notifyStatus, notified
   return payload;
 }
 
-function buildEmailBody({ user, providerIds, timestampIso }) {
-  const providerText = providerIds.length ? providerIds.join(", ") : "N/A";
+function buildEmailBody({ user }) {
   const lines = [
     "Nuevo registro (Finanzas PWA SaaS)",
     `UID: ${user.uid}`,
-    `Email: ${user.email || "N/A"}`,
-    `Providers: ${providerText}`,
-    `Timestamp: ${timestampIso}`,
-    `Consola: ${CONSOLE_URL}`
+    `Email: ${user.email || "N/A"}`
   ];
 
   const html = `
@@ -56,9 +52,6 @@ function buildEmailBody({ user, providerIds, timestampIso }) {
     <ul>
       <li><strong>UID:</strong> ${user.uid}</li>
       <li><strong>Email:</strong> ${user.email || "N/A"}</li>
-      <li><strong>Providers:</strong> ${providerText}</li>
-      <li><strong>Timestamp:</strong> ${timestampIso}</li>
-      <li><strong>Consola:</strong> <a href="${CONSOLE_URL}">${CONSOLE_URL}</a></li>
     </ul>
   `;
 
@@ -84,8 +77,7 @@ async function sendNotificationEmail({ user, providerIds }) {
   assertSendgridConfig(config);
   sgMail.setApiKey(config.apiKey);
 
-  const timestampIso = new Date().toISOString();
-  const { text, html } = buildEmailBody({ user, providerIds, timestampIso });
+  const { text, html } = buildEmailBody({ user });
 
   await sgMail.send({
     to: config.to,
