@@ -1,6 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.uid in ["ADMIN_UID_1"];
+    }
 
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -8,6 +12,11 @@ service cloud.firestore {
       match /{subCollection=**}/{docId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+    }
+
+    match /admin/registrations/{uid} {
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow read, update, delete: if isAdmin();
     }
   }
 }

@@ -1,6 +1,6 @@
 # Piloto PWA SaaS
 
-Esta fase deja la app lista para **Auth + Wizard** en la siguiente iteración.
+Esta fase deja la app lista para **Auth + Wizard** y catálogos personalizados.
 
 ## Firebase
 La app se inicializa **exclusivamente** desde `config/firebase-config.js`. Este archivo importa el SDK modular de Firebase y expone la app en `window.firebaseApp` para el resto del código.
@@ -24,3 +24,10 @@ Activa el módulo que necesites cambiando los flags a `true` y vuelve a recargar
 
 ## Ejemplo
 Usa `config/firebase-config.example.js` como plantilla para nuevos proyectos y reemplaza los valores `REPLACE_ME`.
+
+## Índices de Firestore (recomendado)
+Para métricas y gráficas por rango, Firestore puede requerir un índice compuesto. Si aparece el aviso de índice:
+- Colección: `users/{uid}/expenses`
+- Campos: `ownerId` (asc), `type` (asc), `date` (asc)
+
+Créalo desde el enlace que muestra la consola o desde la sección "Indexes" en Firestore.
