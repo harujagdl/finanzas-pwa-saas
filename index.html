@@ -138,6 +138,52 @@
       width:100%;
       max-width:420px;
     }
+    .onboarding-overlay{
+      position:fixed;
+      inset:0;
+      background:var(--bg-body);
+      z-index:3000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .onboarding-card{
+      width:100%;
+      max-width:720px;
+      background:var(--bg-card);
+      border-radius:18px;
+      padding:24px;
+      box-shadow:var(--shadow);
+      border:1px solid var(--border-color);
+    }
+    .onboarding-step{
+      display:none;
+    }
+    .onboarding-step.active{
+      display:block;
+    }
+    .onboarding-list-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border:1px solid var(--border-color);
+      border-radius:12px;
+      margin-bottom:8px;
+      background:var(--bg-body);
+    }
+    .onboarding-chip{
+      display:inline-flex;
+      align-items:center;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(37,99,235,.12);
+      color:var(--primary);
+      font-size:.75rem;
+      font-weight:700;
+    }
     .auth-message{
       min-height:24px;
     }
@@ -463,6 +509,127 @@
     </div>
   </section>
 
+  <section id="onboarding-overlay" class="onboarding-overlay d-none" aria-live="polite">
+    <div class="onboarding-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <div class="onboarding-chip" id="onboarding-step-label">Paso 1 de 5</div>
+          <h4 class="fw-black mt-2 mb-1">Configura tu app</h4>
+          <div class="text-muted small">Personaliza personas, cuentas y categorías.</div>
+        </div>
+        <div class="text-muted small" id="onboarding-progress"></div>
+      </div>
+
+      <div class="onboarding-step active" data-step="1">
+        <h5 class="fw-bold">¡Bienvenido/a!</h5>
+        <p class="text-muted small">Antes de entrar al dashboard, configura tu app para que todo quede a tu medida.</p>
+        <ul class="small text-muted">
+          <li>Define las personas que participan.</li>
+          <li>Crea tus cuentas (efectivo, débito, crédito).</li>
+          <li>Elige categorías de gastos e ingresos.</li>
+        </ul>
+      </div>
+
+      <div class="onboarding-step" data-step="2">
+        <h5 class="fw-bold mb-2">Personas</h5>
+        <p class="text-muted small mb-3">Agrega al menos una persona. Ej: Tú, Pareja, Familia.</p>
+        <div class="input-group mb-3">
+          <input type="text" id="onboarding-owner-input" class="form-control" placeholder="Tu nombre" />
+          <button class="btn btn-outline-primary" type="button" id="onboarding-owner-add">Agregar persona</button>
+        </div>
+        <div id="onboarding-owner-list" class="mb-2"></div>
+        <div class="text-muted small" id="onboarding-owner-error"></div>
+      </div>
+
+      <div class="onboarding-step" data-step="3">
+        <h5 class="fw-bold mb-2">Cuentas</h5>
+        <p class="text-muted small mb-3">Agrega al menos una cuenta para registrar movimientos.</p>
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-md-5">
+            <label class="small text-muted fw-bold">Nombre</label>
+            <input type="text" id="onboarding-account-name" class="form-control" placeholder="Ej: Efectivo, BBVA Débito" />
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="small text-muted fw-bold">Tipo</label>
+            <select id="onboarding-account-type" class="form-select">
+              <option value="cash">Efectivo</option>
+              <option value="debit">Débito</option>
+              <option value="credit">Crédito</option>
+              <option value="other">Otro</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="small text-muted fw-bold">Día corte</label>
+            <input type="number" id="onboarding-account-cutoff" class="form-control" placeholder="1-31" min="1" max="31" />
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="small text-muted fw-bold">Día pago</label>
+            <input type="number" id="onboarding-account-payday" class="form-control" placeholder="1-31" min="1" max="31" />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="small text-muted fw-bold">Pago no intereses</label>
+            <input type="number" id="onboarding-account-no-interest" class="form-control" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="small text-muted fw-bold">Límite total</label>
+            <input type="number" id="onboarding-account-limit" class="form-control" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <div class="col-12 col-md-4">
+            <button class="btn btn-outline-primary w-100" type="button" id="onboarding-account-add">
+              <i class="fas fa-plus me-1"></i>Agregar cuenta
+            </button>
+          </div>
+        </div>
+        <div class="text-muted small mt-2">Los campos de crédito se guardan solo si eliges tipo crédito.</div>
+        <div id="onboarding-account-list" class="mt-3"></div>
+        <div class="text-muted small" id="onboarding-account-error"></div>
+      </div>
+
+      <div class="onboarding-step" data-step="4">
+        <h5 class="fw-bold mb-2">Categorías</h5>
+        <p class="text-muted small mb-3">Selecciona al menos 1 categoría de gasto y 1 de ingreso.</p>
+        <div class="btn-group w-100 mb-3" role="group">
+          <input type="radio" class="btn-check" name="onboarding-cat-tab" id="onboarding-cat-expense" value="expense" checked />
+          <label class="btn btn-outline-danger" for="onboarding-cat-expense">Gastos</label>
+          <input type="radio" class="btn-check" name="onboarding-cat-tab" id="onboarding-cat-income" value="income" />
+          <label class="btn btn-outline-success" for="onboarding-cat-income">Ingresos</label>
+        </div>
+        <div id="onboarding-suggested-list" class="mb-3"></div>
+        <div class="input-group mb-3">
+          <input type="text" id="onboarding-category-input" class="form-control" placeholder="Agregar categoría" />
+          <button class="btn btn-outline-primary" type="button" id="onboarding-category-add">Agregar</button>
+        </div>
+        <div id="onboarding-category-selected"></div>
+        <div class="text-muted small" id="onboarding-category-error"></div>
+      </div>
+
+      <div class="onboarding-step" data-step="5">
+        <h5 class="fw-bold mb-2">Confirmar</h5>
+        <p class="text-muted small">Revisa tu configuración antes de guardar.</p>
+        <div class="card-box mb-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Personas</span>
+            <span id="onboarding-summary-owners" class="text-muted small">0</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="fw-bold">Cuentas</span>
+            <span id="onboarding-summary-accounts" class="text-muted small">0</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="fw-bold">Categorías (gastos/ingresos)</span>
+            <span id="onboarding-summary-categories" class="text-muted small">0 / 0</span>
+          </div>
+        </div>
+        <div class="alert alert-info small mb-0">Puedes editar todo más tarde en Ajustes.</div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <button class="btn btn-outline-secondary" type="button" id="onboarding-back">Atrás</button>
+        <button class="btn btn-primary" type="button" id="onboarding-next">Siguiente</button>
+      </div>
+    </div>
+  </section>
+
   <div id="app-root" class="d-none">
   <!-- =======================
         ✅ INICIO
@@ -571,7 +738,7 @@
 
     <section id="dev-seed-section" class="card-box d-none">
       <h6 class="fw-bold m-0">Datos demo (solo desarrollo)</h6>
-      <p class="text-muted small mt-2">Carga tarjetas de ejemplo manualmente. No se ejecuta automáticamente.</p>
+      <p class="text-muted small mt-2">Carga cuentas de ejemplo manualmente. No se ejecuta automáticamente.</p>
       <button class="btn btn-outline-secondary btn-sm" type="button" id="load-demo-btn">Cargar demo</button>
     </section>
 
@@ -754,7 +921,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="small fw-bold text-muted mb-1">Tarjeta / Cuenta</label>
+          <label class="small fw-bold text-muted mb-1">Cuenta</label>
           <div id="card-select-field">
             <select id="t-card" class="form-select" required></select>
           </div>
@@ -993,7 +1160,7 @@
     <div class="card-box">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <h6 class="fw-bold m-0">Cuentas / Tarjetas</h6>
+          <h6 class="fw-bold m-0">Cuentas</h6>
           <div class="text-muted small">Administra cuentas de efectivo, débito o crédito.</div>
         </div>
         <span class="text-muted small" id="accounts-limit-note"></span>
@@ -1014,12 +1181,20 @@
           </select>
         </div>
         <div class="col-6 col-md-2">
-          <label class="small text-muted fw-bold">Últimos 4</label>
-          <input type="text" id="new-account-last4" class="form-control" placeholder="1234" maxlength="4" />
+          <label class="small text-muted fw-bold">Día corte</label>
+          <input type="number" id="new-account-cutoff" class="form-control" placeholder="1-31" min="1" max="31" />
         </div>
-        <div class="col-12 col-md-3">
-          <label class="small text-muted fw-bold">Banco</label>
-          <input type="text" id="new-account-bank" class="form-control" placeholder="Banco" />
+        <div class="col-6 col-md-2">
+          <label class="small text-muted fw-bold">Día pago</label>
+          <input type="number" id="new-account-payday" class="form-control" placeholder="1-31" min="1" max="31" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="small text-muted fw-bold">Pago no intereses</label>
+          <input type="number" id="new-account-no-interest" class="form-control" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="small text-muted fw-bold">Límite total</label>
+          <input type="number" id="new-account-limit" class="form-control" placeholder="0.00" min="0" step="0.01" />
         </div>
         <div class="col-12">
           <button class="btn btn-outline-primary w-100" type="button" id="add-account-btn"><i class="fas fa-plus me-1"></i>Agregar cuenta</button>
@@ -1379,6 +1554,32 @@
     const googleAuthBtn = document.getElementById("google-auth-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const authGreeting = document.getElementById("auth-greeting");
+    const onboardingOverlay = document.getElementById("onboarding-overlay");
+    const onboardingStepLabel = document.getElementById("onboarding-step-label");
+    const onboardingProgress = document.getElementById("onboarding-progress");
+    const onboardingBackBtn = document.getElementById("onboarding-back");
+    const onboardingNextBtn = document.getElementById("onboarding-next");
+    const onboardingOwnerInput = document.getElementById("onboarding-owner-input");
+    const onboardingOwnerAdd = document.getElementById("onboarding-owner-add");
+    const onboardingOwnerList = document.getElementById("onboarding-owner-list");
+    const onboardingOwnerError = document.getElementById("onboarding-owner-error");
+    const onboardingAccountName = document.getElementById("onboarding-account-name");
+    const onboardingAccountType = document.getElementById("onboarding-account-type");
+    const onboardingAccountCutoff = document.getElementById("onboarding-account-cutoff");
+    const onboardingAccountPayday = document.getElementById("onboarding-account-payday");
+    const onboardingAccountNoInterest = document.getElementById("onboarding-account-no-interest");
+    const onboardingAccountLimit = document.getElementById("onboarding-account-limit");
+    const onboardingAccountAdd = document.getElementById("onboarding-account-add");
+    const onboardingAccountList = document.getElementById("onboarding-account-list");
+    const onboardingAccountError = document.getElementById("onboarding-account-error");
+    const onboardingSuggestedList = document.getElementById("onboarding-suggested-list");
+    const onboardingCategoryInput = document.getElementById("onboarding-category-input");
+    const onboardingCategoryAdd = document.getElementById("onboarding-category-add");
+    const onboardingCategorySelected = document.getElementById("onboarding-category-selected");
+    const onboardingCategoryError = document.getElementById("onboarding-category-error");
+    const onboardingSummaryOwners = document.getElementById("onboarding-summary-owners");
+    const onboardingSummaryAccounts = document.getElementById("onboarding-summary-accounts");
+    const onboardingSummaryCategories = document.getElementById("onboarding-summary-categories");
     let authMode = "login";
     let authProcessing = false;
     let currentUser = null;
@@ -1637,15 +1838,13 @@
           batch.set(getUserDoc("accounts", docSnap.id), {
             name: data.name || "Cuenta",
             type: data.type || "credit",
-            last4: data.last4 || null,
-            bank: data.bank || null,
             isActive: data.isActive ?? true,
             createdAt: data.createdAt || serverTimestamp(),
-            cutDay: data.cutDay || 1,
-            payDay: data.payDay || 1,
-            limit: data.limit || 0,
+            cutoffDay: data.cutoffDay || data.cutDay || null,
+            payDay: data.payDay || null,
+            noInterestPayment: data.noInterestPayment || data.payGoal || null,
+            creditLimit: data.creditLimit || data.limit || null,
             balance: data.balance || 0,
-            payGoal: data.payGoal || 0,
             legacySource: "cards"
           }, { merge: true });
         });
@@ -1655,95 +1854,29 @@
       }
     }
 
-    async function ensureUserSeed(){
-      const [settingsSnap, ownerSnap, accountSnap, categorySnap] = await Promise.all([
-        getDoc(getAppSettingsDoc()),
-        getDocs(query(getUserCollection("owners"), limit(1))),
-        getDocs(query(getUserCollection("accounts"), limit(1))),
-        getDocs(query(getUserCollection("categories"), limit(1)))
-      ]);
-
-      if(settingsSnap.exists() || !ownerSnap.empty || !accountSnap.empty || !categorySnap.empty){
-        return;
+    async function ensureAppSettings(){
+      const settingsSnap = await getDoc(getAppSettingsDoc());
+      if(settingsSnap.exists()){
+        appSettings = { ...appSettings, ...settingsSnap.data() };
+        return settingsSnap.data();
       }
-
-      const ownerNames = ["Yo", "Pareja"];
-      const accountNames = [
-        { name: "Efectivo", type: "cash" },
-        { name: "Tarjeta Débito", type: "debit" },
-        { name: "Tarjeta Crédito", type: "credit" }
-      ];
-      const expenseCategories = ["Comida", "Transporte", "Casa", "Compras", "Servicios", "Salud", "Ocio"];
-      const incomeCategories = ["Sueldo", "Ventas", "Otros"];
-
-      const ownerIds = [];
-      for(const name of ownerNames){
-        const ref = await addDoc(getUserCollection("owners"), {
-          name,
-          color: null,
-          createdAt: serverTimestamp(),
-          isActive: true
-        });
-        ownerIds.push(ref.id);
-      }
-
-      const accountIds = [];
-      for(const account of accountNames){
-        const ref = await addDoc(getUserCollection("accounts"), {
-          name: account.name,
-          type: account.type,
-          last4: null,
-          bank: null,
-          isActive: true,
-          createdAt: serverTimestamp()
-        });
-        accountIds.push(ref.id);
-      }
-
-      const categoryIds = { expense: [], income: [] };
-      let order = 0;
-      for(const name of expenseCategories){
-        const ref = await addDoc(getUserCollection("categories"), {
-          name,
-          kind: "expense",
-          icon: null,
-          order: order++,
-          isActive: true,
-          createdAt: serverTimestamp()
-        });
-        categoryIds.expense.push(ref.id);
-      }
-      order = 0;
-      for(const name of incomeCategories){
-        const ref = await addDoc(getUserCollection("categories"), {
-          name,
-          kind: "income",
-          icon: null,
-          order: order++,
-          isActive: true,
-          createdAt: serverTimestamp()
-        });
-        categoryIds.income.push(ref.id);
-      }
-
-      await setDoc(getAppSettingsDoc(), {
-        defaultOwnerId: ownerIds[0] || null,
-        defaultAccountId: accountIds[0] || null,
-        defaultExpenseCategoryId: categoryIds.expense[0] || null,
-        defaultIncomeCategoryId: categoryIds.income[0] || null,
+      const defaults = {
         onboardingDone: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        defaultOwnerId: null,
+        defaultAccountId: null,
         plan: "free",
-        limits: { movesPerMonth: 200, owners: 2, accounts: 3, categories: 12 },
         migrations: {}
-      });
+      };
+      await setDoc(getAppSettingsDoc(), defaults, { merge: true });
+      appSettings = { ...appSettings, ...defaults };
+      return defaults;
     }
 
     async function ensureSettingsDefaults(){
       const settingsSnap = await getDoc(getAppSettingsDoc());
-      if(settingsSnap.exists()){
-        appSettings = { ...appSettings, ...settingsSnap.data() };
-        return;
-      }
+      const currentSettings = settingsSnap.exists() ? settingsSnap.data() : {};
 
       const [ownersSnap, accountsSnap, expenseCatsSnap, incomeCatsSnap] = await Promise.all([
         getDocs(query(getUserCollection("owners"), orderBy("createdAt"), limit(1))),
@@ -1753,17 +1886,24 @@
       ]);
 
       const defaults = {
-        defaultOwnerId: ownersSnap.docs[0]?.id || null,
-        defaultAccountId: accountsSnap.docs[0]?.id || null,
-        defaultExpenseCategoryId: expenseCatsSnap.docs[0]?.id || null,
-        defaultIncomeCategoryId: incomeCatsSnap.docs[0]?.id || null,
-        onboardingDone: false,
-        plan: "free",
-        limits: { movesPerMonth: 200, owners: 2, accounts: 3, categories: 12 },
-        migrations: {}
+        defaultOwnerId: currentSettings.defaultOwnerId || ownersSnap.docs[0]?.id || null,
+        defaultAccountId: currentSettings.defaultAccountId || accountsSnap.docs[0]?.id || null,
+        defaultExpenseCategoryId: currentSettings.defaultExpenseCategoryId || expenseCatsSnap.docs[0]?.id || null,
+        defaultIncomeCategoryId: currentSettings.defaultIncomeCategoryId || incomeCatsSnap.docs[0]?.id || null,
+        onboardingDone: currentSettings.onboardingDone ?? false,
+        plan: currentSettings.plan || "free",
+        migrations: currentSettings.migrations || {},
+        updatedAt: serverTimestamp()
       };
-      await setDoc(getAppSettingsDoc(), defaults, { merge: true });
-      appSettings = { ...appSettings, ...defaults };
+      const shouldPersist = !settingsSnap.exists()
+        || !currentSettings.defaultOwnerId
+        || !currentSettings.defaultAccountId
+        || !currentSettings.defaultExpenseCategoryId
+        || !currentSettings.defaultIncomeCategoryId;
+      if(shouldPersist){
+        await setDoc(getAppSettingsDoc(), defaults, { merge: true });
+      }
+      appSettings = { ...appSettings, ...currentSettings, ...defaults };
     }
 
     async function migrateMovementsIfNeeded(){
@@ -1884,12 +2024,339 @@
       await setDoc(getAppSettingsDoc(), { migrations: { ...(settingsData?.migrations || {}), v1_done: true } }, { merge: true });
     }
 
+    function toggleOnboardingVisibility(show){
+      if(onboardingOverlay) onboardingOverlay.classList.toggle("d-none", !show);
+      if(appRoot) appRoot.classList.toggle("d-none", show);
+      if(show) stopLoader();
+    }
+
+    function resetOnboardingState(){
+      onboardingState.step = 1;
+      onboardingState.owners = [];
+      onboardingState.accounts = [];
+      onboardingState.categories = { expense: [], income: [] };
+      onboardingState.saving = false;
+      if(onboardingOwnerInput){
+        onboardingOwnerInput.value = currentUser?.displayName || currentUser?.email || "";
+      }
+      if(onboardingAccountName) onboardingAccountName.value = "";
+      if(onboardingAccountType) onboardingAccountType.value = "cash";
+      if(onboardingAccountCutoff) onboardingAccountCutoff.value = "";
+      if(onboardingAccountPayday) onboardingAccountPayday.value = "";
+      if(onboardingAccountNoInterest) onboardingAccountNoInterest.value = "";
+      if(onboardingAccountLimit) onboardingAccountLimit.value = "";
+      if(onboardingCategoryInput) onboardingCategoryInput.value = "";
+      toggleOnboardingAccountFields();
+    }
+
+    function updateOnboardingStepUi(){
+      const step = onboardingState.step;
+      if(onboardingStepLabel) onboardingStepLabel.textContent = `Paso ${step} de ${ONBOARDING_TOTAL_STEPS}`;
+      if(onboardingProgress) onboardingProgress.textContent = step === ONBOARDING_TOTAL_STEPS ? "Listo para guardar" : "";
+      document.querySelectorAll(".onboarding-step").forEach((el)=>{
+        const isActive = Number(el.dataset.step) === step;
+        el.classList.toggle("active", isActive);
+      });
+      if(onboardingBackBtn) onboardingBackBtn.disabled = step === 1 || onboardingState.saving;
+      if(onboardingNextBtn){
+        onboardingNextBtn.textContent = step === ONBOARDING_TOTAL_STEPS ? "Guardar" : "Siguiente";
+        onboardingNextBtn.disabled = onboardingState.saving;
+      }
+      renderOnboardingOwners();
+      renderOnboardingAccounts();
+      renderOnboardingCategories();
+      updateOnboardingSummary();
+      toggleOnboardingAccountFields();
+    }
+
+    function renderOnboardingOwners(){
+      if(!onboardingOwnerList) return;
+      onboardingOwnerList.innerHTML = onboardingState.owners.map((owner, index)=>`
+        <div class="onboarding-list-item">
+          <span class="fw-bold">${owner}</span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" type="button" onclick="renameOnboardingOwner(${index})">Renombrar</button>
+            <button class="btn btn-sm btn-outline-danger" type="button" onclick="removeOnboardingOwner(${index})">Quitar</button>
+          </div>
+        </div>
+      `).join("") || "<small class=\"text-muted\">Agrega tu primera persona.</small>";
+      if(onboardingOwnerError) onboardingOwnerError.textContent = "";
+    }
+
+    function renderOnboardingAccounts(){
+      if(!onboardingAccountList) return;
+      onboardingAccountList.innerHTML = onboardingState.accounts.map((account, index)=>`
+        <div class="onboarding-list-item">
+          <div>
+            <div class="fw-bold">${account.name}</div>
+            <div class="text-muted small">${getAccountTypeLabel(account.type)}${account.type === "credit" ? ` · Corte ${account.cutoffDay || "-"} · Pago ${account.payDay || "-"}` : ""}</div>
+          </div>
+          <button class="btn btn-sm btn-outline-danger" type="button" onclick="removeOnboardingAccount(${index})">Quitar</button>
+        </div>
+      `).join("") || "<small class=\"text-muted\">Agrega tu primera cuenta.</small>";
+      if(onboardingAccountError) onboardingAccountError.textContent = "";
+    }
+
+    function getOnboardingActiveCategoryKind(){
+      const checked = document.querySelector('input[name="onboarding-cat-tab"]:checked');
+      return checked?.value || "expense";
+    }
+
+    function renderOnboardingCategories(){
+      if(!onboardingSuggestedList || !onboardingCategorySelected) return;
+      const kind = getOnboardingActiveCategoryKind();
+      const selected = onboardingState.categories[kind] || [];
+      const suggestions = onboardingSuggestions[kind] || [];
+
+      onboardingSuggestedList.innerHTML = suggestions.map((name, idx)=>`
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" value="${name}" id="onboarding-suggest-${kind}-${idx}" data-name="${name}">
+          <label class="form-check-label" for="onboarding-suggest-${kind}-${idx}">${name}</label>
+        </div>
+      `).join("");
+
+      suggestions.forEach((name, idx)=>{
+        const checkbox = document.getElementById(`onboarding-suggest-${kind}-${idx}`);
+        if(checkbox){
+          checkbox.checked = selected.includes(name);
+          checkbox.addEventListener("change", (event)=>{
+            const selectedName = event.target.dataset.name || name;
+            if(event.target.checked){
+              addOnboardingCategory(selectedName, kind);
+            }else{
+              removeOnboardingCategory(selectedName, kind);
+            }
+          });
+        }
+      });
+
+      onboardingCategorySelected.innerHTML = selected.map((name, index)=>`
+        <div class="onboarding-list-item">
+          <span class="fw-bold">${name}</span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" type="button" onclick="moveOnboardingCategory('${kind}', ${index}, -1)">↑</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" onclick="moveOnboardingCategory('${kind}', ${index}, 1)">↓</button>
+            <button class="btn btn-sm btn-outline-danger" type="button" onclick="removeOnboardingCategory('${name}', '${kind}')">Quitar</button>
+          </div>
+        </div>
+      `).join("") || "<small class=\"text-muted\">Selecciona categorías para continuar.</small>";
+      if(onboardingCategoryError) onboardingCategoryError.textContent = "";
+    }
+
+    function updateOnboardingSummary(){
+      if(onboardingSummaryOwners) onboardingSummaryOwners.textContent = onboardingState.owners.length;
+      if(onboardingSummaryAccounts) onboardingSummaryAccounts.textContent = onboardingState.accounts.length;
+      if(onboardingSummaryCategories){
+        onboardingSummaryCategories.textContent = `${onboardingState.categories.expense.length} / ${onboardingState.categories.income.length}`;
+      }
+    }
+
+    function addOnboardingOwner(name){
+      const clean = name.trim();
+      if(!clean) return;
+      if(onboardingState.owners.some(o=>o.toLowerCase() === clean.toLowerCase())) return;
+      onboardingState.owners.push(clean);
+      renderOnboardingOwners();
+      updateOnboardingSummary();
+    }
+
+    window.renameOnboardingOwner = (index) => {
+      const current = onboardingState.owners[index];
+      if(!current) return;
+      const next = prompt("Nuevo nombre", current);
+      if(next && next.trim()){
+        onboardingState.owners[index] = next.trim();
+        renderOnboardingOwners();
+      }
+    };
+
+    window.removeOnboardingOwner = (index) => {
+      onboardingState.owners.splice(index, 1);
+      renderOnboardingOwners();
+      updateOnboardingSummary();
+    };
+
+    function toggleOnboardingAccountFields(){
+      const isCredit = onboardingAccountType?.value === "credit";
+      [onboardingAccountCutoff, onboardingAccountPayday, onboardingAccountNoInterest, onboardingAccountLimit].forEach((el)=>{
+        if(!el) return;
+        el.disabled = !isCredit;
+        if(!isCredit) el.value = "";
+      });
+    }
+
+    function addOnboardingAccount(){
+      const name = onboardingAccountName?.value.trim();
+      const type = onboardingAccountType?.value || "other";
+      if(!name) return;
+      const cutoffDay = parseInt(onboardingAccountCutoff?.value || "", 10);
+      const payDay = parseInt(onboardingAccountPayday?.value || "", 10);
+      const noInterestPayment = parseFloat(onboardingAccountNoInterest?.value || "");
+      const creditLimit = parseFloat(onboardingAccountLimit?.value || "");
+      onboardingState.accounts.push({
+        name,
+        type,
+        cutoffDay: type === "credit" && Number.isFinite(cutoffDay) ? cutoffDay : null,
+        payDay: type === "credit" && Number.isFinite(payDay) ? payDay : null,
+        noInterestPayment: type === "credit" && Number.isFinite(noInterestPayment) ? noInterestPayment : null,
+        creditLimit: type === "credit" && Number.isFinite(creditLimit) ? creditLimit : null
+      });
+      if(onboardingAccountName) onboardingAccountName.value = "";
+      if(onboardingAccountType) onboardingAccountType.value = "cash";
+      if(onboardingAccountCutoff) onboardingAccountCutoff.value = "";
+      if(onboardingAccountPayday) onboardingAccountPayday.value = "";
+      if(onboardingAccountNoInterest) onboardingAccountNoInterest.value = "";
+      if(onboardingAccountLimit) onboardingAccountLimit.value = "";
+      renderOnboardingAccounts();
+      updateOnboardingSummary();
+    }
+
+    window.removeOnboardingAccount = (index) => {
+      onboardingState.accounts.splice(index, 1);
+      renderOnboardingAccounts();
+      updateOnboardingSummary();
+    };
+
+    function addOnboardingCategory(name, kind){
+      const clean = name.trim();
+      if(!clean) return;
+      const list = onboardingState.categories[kind] || [];
+      if(list.some(c=>c.toLowerCase() === clean.toLowerCase())) return;
+      list.push(clean);
+      onboardingState.categories[kind] = list;
+      renderOnboardingCategories();
+      updateOnboardingSummary();
+    }
+
+    window.removeOnboardingCategory = (name, kind) => {
+      const list = onboardingState.categories[kind] || [];
+      onboardingState.categories[kind] = list.filter(item => item.toLowerCase() !== name.toLowerCase());
+      renderOnboardingCategories();
+      updateOnboardingSummary();
+    };
+
+    window.moveOnboardingCategory = (kind, index, direction) => {
+      const list = onboardingState.categories[kind] || [];
+      const nextIndex = index + direction;
+      if(nextIndex < 0 || nextIndex >= list.length) return;
+      const temp = list[index];
+      list[index] = list[nextIndex];
+      list[nextIndex] = temp;
+      onboardingState.categories[kind] = list;
+      renderOnboardingCategories();
+    };
+
+    function validateOnboardingStep(step){
+      if(step === 2 && onboardingState.owners.length < 1){
+        if(onboardingOwnerError) onboardingOwnerError.textContent = "Agrega al menos una persona.";
+        return false;
+      }
+      if(step === 3 && onboardingState.accounts.length < 1){
+        if(onboardingAccountError) onboardingAccountError.textContent = "Agrega al menos una cuenta.";
+        return false;
+      }
+      if(step === 4){
+        const hasExpense = onboardingState.categories.expense.length >= 1;
+        const hasIncome = onboardingState.categories.income.length >= 1;
+        if(!hasExpense || !hasIncome){
+          if(onboardingCategoryError) onboardingCategoryError.textContent = "Selecciona al menos 1 gasto y 1 ingreso.";
+          return false;
+        }
+      }
+      return true;
+    }
+
+    async function saveOnboardingData(){
+      if(onboardingState.saving) return;
+      onboardingState.saving = true;
+      updateOnboardingStepUi();
+      try{
+        const ownerIds = [];
+        for(const name of onboardingState.owners){
+          const ref = await addDoc(getUserCollection("owners"), {
+            name,
+            isActive: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          ownerIds.push(ref.id);
+        }
+
+        const accountIds = [];
+        for(const account of onboardingState.accounts){
+          const ref = await addDoc(getUserCollection("accounts"), {
+            name: account.name,
+            type: account.type,
+            cutoffDay: account.type === "credit" ? account.cutoffDay : null,
+            payDay: account.type === "credit" ? account.payDay : null,
+            noInterestPayment: account.type === "credit" ? account.noInterestPayment : null,
+            creditLimit: account.type === "credit" ? account.creditLimit : null,
+            isActive: true,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          accountIds.push(ref.id);
+        }
+
+        const categoryIds = { expense: [], income: [] };
+        for(const kind of ["expense", "income"]){
+          let order = 0;
+          for(const name of onboardingState.categories[kind]){
+            const ref = await addDoc(getUserCollection("categories"), {
+              name,
+              kind,
+              order,
+              isActive: true,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            categoryIds[kind].push(ref.id);
+            order += 1;
+          }
+        }
+
+        const settingsPayload = {
+          onboardingDone: true,
+          updatedAt: serverTimestamp(),
+          createdAt: appSettings.createdAt || serverTimestamp(),
+          defaultOwnerId: ownerIds[0] || null,
+          defaultAccountId: accountIds[0] || null,
+          defaultExpenseCategoryId: categoryIds.expense[0] || null,
+          defaultIncomeCategoryId: categoryIds.income[0] || null
+        };
+        await setDoc(getAppSettingsDoc(), settingsPayload, { merge: true });
+        appSettings = { ...appSettings, ...settingsPayload, onboardingDone: true };
+        toggleOnboardingVisibility(false);
+        resubscribeAll();
+        showToast("Onboarding completado. ¡Listo para empezar!", { tone: "success", duration: 2600 });
+      }catch(err){
+        console.error("Onboarding save error:", err);
+        showToast("No pudimos guardar tu configuración. Intenta de nuevo.", { tone: "warning", duration: 2400 });
+      }finally{
+        onboardingState.saving = false;
+        updateOnboardingStepUi();
+      }
+    }
+
     async function registerUser(email, password){
       if(!auth) throw new Error("Auth no disponible");
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       currentUser = { uid: credential.user.uid, email: credential.user.email, displayName: credential.user.displayName || "" };
       window.currentUser = currentUser;
       window.userProfile = await ensureUserProfile(credential.user);
+      if(db){
+        try{
+          await setDoc(doc(db, "admin", "registrations", credential.user.uid), {
+            uid: credential.user.uid,
+            email: credential.user.email || "",
+            provider: credential.user.providerData?.[0]?.providerId ?? "password",
+            displayName: credential.user.displayName || "",
+            createdAt: serverTimestamp()
+          }, { merge: true });
+        }catch(err){
+          console.warn("No se pudo registrar alta en admin/registrations:", err?.message || err);
+        }
+      }
       return credential.user;
     }
 
@@ -1968,10 +2435,6 @@
     }
 
     function unsubscribeAll(){
-      if(unsubCards){
-        unsubCards();
-        unsubCards = null;
-      }
       if(unsubOwners){
         unsubOwners();
         unsubOwners = null;
@@ -2020,6 +2483,7 @@
       currentUser = null;
       window.currentUser = null;
       window.userProfile = null;
+      toggleOnboardingVisibility(false);
       unsubscribeAll();
       appReady = false;
       stopLoader();
@@ -2100,6 +2564,70 @@
     if(authToggleLink){
       authToggleLink.addEventListener("click", toggleAuthMode);
     }
+    if(onboardingOwnerAdd){
+      onboardingOwnerAdd.addEventListener("click", ()=>{
+        if(onboardingOwnerInput?.value) addOnboardingOwner(onboardingOwnerInput.value);
+        if(onboardingOwnerInput) onboardingOwnerInput.value = "";
+      });
+    }
+    if(onboardingOwnerInput){
+      onboardingOwnerInput.addEventListener("keydown", (event)=>{
+        if(event.key === "Enter"){
+          event.preventDefault();
+          addOnboardingOwner(onboardingOwnerInput.value);
+          onboardingOwnerInput.value = "";
+        }
+      });
+    }
+    if(onboardingAccountType){
+      onboardingAccountType.addEventListener("change", toggleOnboardingAccountFields);
+    }
+    if(onboardingAccountAdd){
+      onboardingAccountAdd.addEventListener("click", addOnboardingAccount);
+    }
+    if(onboardingCategoryAdd){
+      onboardingCategoryAdd.addEventListener("click", ()=>{
+        const kind = getOnboardingActiveCategoryKind();
+        if(onboardingCategoryInput?.value) addOnboardingCategory(onboardingCategoryInput.value, kind);
+        if(onboardingCategoryInput) onboardingCategoryInput.value = "";
+      });
+    }
+    if(onboardingCategoryInput){
+      onboardingCategoryInput.addEventListener("keydown", (event)=>{
+        if(event.key === "Enter"){
+          event.preventDefault();
+          const kind = getOnboardingActiveCategoryKind();
+          addOnboardingCategory(onboardingCategoryInput.value, kind);
+          onboardingCategoryInput.value = "";
+        }
+      });
+    }
+    const onboardingCategoryTabs = document.querySelectorAll('input[name="onboarding-cat-tab"]');
+    onboardingCategoryTabs.forEach((tab)=>{
+      tab.addEventListener("change", ()=>{
+        renderOnboardingCategories();
+      });
+    });
+    if(onboardingBackBtn){
+      onboardingBackBtn.addEventListener("click", ()=>{
+        if(onboardingState.step > 1){
+          onboardingState.step -= 1;
+          updateOnboardingStepUi();
+        }
+      });
+    }
+    if(onboardingNextBtn){
+      onboardingNextBtn.addEventListener("click", ()=>{
+        const step = onboardingState.step;
+        if(!validateOnboardingStep(step)) return;
+        if(step >= ONBOARDING_TOTAL_STEPS){
+          saveOnboardingData();
+          return;
+        }
+        onboardingState.step += 1;
+        updateOnboardingStepUi();
+      });
+    }
     if(logoutBtn){
       logoutBtn.addEventListener("click", async () => {
         if(logoutBtn.disabled) return;
@@ -2131,8 +2659,25 @@
       startLoader();
       try{
         await ensureAccountsFromCards();
-        await ensureUserSeed();
+        const settings = await ensureAppSettings();
+        const [ownerSnap, accountSnap, categorySnap] = await Promise.all([
+          getDocs(query(getUserCollection("owners"), limit(1))),
+          getDocs(query(getUserCollection("accounts"), limit(1))),
+          getDocs(query(getUserCollection("categories"), limit(1)))
+        ]);
+        const hasCatalogs = !ownerSnap.empty || !accountSnap.empty || !categorySnap.empty;
+        if(!settings.onboardingDone && !hasCatalogs){
+          resetOnboardingState();
+          toggleOnboardingVisibility(true);
+          updateOnboardingStepUi();
+          return;
+        }
+        if(!settings.onboardingDone && hasCatalogs){
+          await setDoc(getAppSettingsDoc(), { onboardingDone: true, updatedAt: serverTimestamp() }, { merge: true });
+          appSettings = { ...appSettings, onboardingDone: true };
+        }
         await ensureSettingsDefaults();
+        toggleOnboardingVisibility(false);
         await migrateMovementsIfNeeded();
       }catch(err){
         console.warn("Inicialización de catálogos incompleta:", err);
@@ -2175,6 +2720,7 @@
 
     // State
     let owners=[], accounts=[], categories=[];
+    window.appData = { owners, accounts, categories };
     let appSettings={
       defaultOwnerId: null,
       defaultAccountId: null,
@@ -2183,15 +2729,17 @@
       onboardingDone: false,
       plan: "free",
       limits: { movesPerMonth: 200, owners: 2, accounts: 3, categories: 12 },
-      migrations: {}
+      migrations: {},
+      createdAt: null,
+      updatedAt: null
     };
-    let cards=[], trans=[], goals=[];
+    let trans=[], goals=[];
     let privacy=false, chartInstance=null;
     let cardModal=null;
     let goalModal=null;
     let goalDetailModal=null;
     let goalContributionModal=null;
-    let unsubCards=null, unsubTrans=null, unsubGoals=null;
+    let unsubTrans=null, unsubGoals=null;
     let unsubOwners=null, unsubAccounts=null, unsubCategories=null, unsubSettings=null;
     let goalsLoading = true;
     let goalsError = null;
@@ -2218,8 +2766,21 @@
     // MSI state
     let msiChartInstance=null;
 
+    const ONBOARDING_TOTAL_STEPS = 5;
+    const onboardingState = {
+      step: 1,
+      owners: [],
+      accounts: [],
+      categories: { expense: [], income: [] },
+      saving: false
+    };
+    const onboardingSuggestions = {
+      expense: ["Comida", "Transporte", "Casa", "Compras", "Servicios", "Salud", "Ocio"],
+      income: ["Sueldo", "Ventas", "Otros"]
+    };
+
     const FEATURES = {
-      dashboard: false,
+      dashboard: true,
       alerts: false,
       insights: false,
       offlineUx: true,
@@ -2230,8 +2791,8 @@
       darkMode: true,
       coupleMode: false,
       monthlyFootprint: false,
-      charts: false,
-      cards: false,
+      charts: true,
+      accounts: true,
       goals: false
     };
 
@@ -2368,18 +2929,18 @@
       toggle("simulation-section", FEATURES.simulator);
       toggle("monthly-footprint-section", FEATURES.monthlyFootprint);
       toggle("scope-filter-section", FEATURES.coupleMode);
-      toggle("payment-monitor-section", FEATURES.cards);
-      toggle("utilization-section", FEATURES.cards);
+      toggle("payment-monitor-section", FEATURES.accounts);
+      toggle("utilization-section", FEATURES.accounts);
       toggle("chart-section", FEATURES.charts);
-      toggle("cards-state-section", FEATURES.cards);
-      toggle("cards-content", FEATURES.cards);
-      toggle("cards-placeholder", !FEATURES.cards);
-      toggle("card-select-field", FEATURES.cards);
-      toggle("card-text-field", !FEATURES.cards);
-      toggle("nav-cards", FEATURES.cards);
-      toggle("nav-msi", FEATURES.cards);
+      toggle("cards-state-section", FEATURES.accounts);
+      toggle("cards-content", FEATURES.accounts);
+      toggle("cards-placeholder", !FEATURES.accounts);
+      toggle("card-select-field", FEATURES.accounts);
+      toggle("card-text-field", !FEATURES.accounts);
+      toggle("nav-cards", FEATURES.accounts);
+      toggle("nav-msi", FEATURES.accounts);
       toggle("nav-goals", FEATURES.goals);
-      toggle("view-msi", FEATURES.cards);
+      toggle("view-msi", FEATURES.accounts);
       toggle("goals-content", FEATURES.goals);
       toggle("goals-placeholder", !FEATURES.goals);
       toggle("placeholder-alerts", !FEATURES.alerts);
@@ -2621,7 +3182,7 @@
     }, 0);
 
     const groupByCategory = (expenses = []) => expenses.reduce((acc, exp) => {
-      const key = exp?.category ? exp.category : "Sin categoría";
+      const key = exp?.categoryId || exp?.category || "uncategorized";
       acc[key] = safeNumber(acc[key]) + safeNumber(exp?.amount);
       return acc;
     }, {});
@@ -3034,11 +3595,12 @@
           const currentVal = safeNumber(categoriesCurrent[key]);
           const prevVal = safeNumber(categoriesPrevious[key]);
           const diff = currentVal - prevVal;
+          const label = resolveCategoryLabel(key);
           if (diff > 0 && (!maxIncrease || diff > maxIncrease.delta)) {
-            maxIncrease = { category: key || "Sin categoría", delta: diff };
+            maxIncrease = { category: label, delta: diff };
           }
           if (diff < 0 && (!maxDecrease || diff < maxDecrease.delta)) {
-            maxDecrease = { category: key || "Sin categoría", delta: diff };
+            maxDecrease = { category: label, delta: diff };
           }
         });
 
@@ -3569,7 +4131,7 @@
       const byCategory = Object.entries(byCategoryTotals)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
-        .map(([category, value]) => ({ category, total: value }));
+        .map(([category, value]) => ({ category: resolveCategoryLabel(category), total: value }));
 
       const byScope = normalizedAll.reduce((acc, item) => {
         if(item?.type && item.type !== "expense") return acc;
@@ -4029,7 +4591,7 @@
       if(vid.includes('settings')) document.getElementById('nav-settings').classList.add('active');
 
       // render MSI cuando entras
-      if(vid === 'view-msi' && FEATURES.cards) renderMsi();
+      if(vid === 'view-msi' && FEATURES.accounts) renderMsi();
       if(vid === 'view-goals' && FEATURES.goals) renderGoals();
     };
 
@@ -4059,7 +4621,7 @@
         icon.className = getEffectiveTheme(mode) === "dark" ? "fas fa-moon" : "fas fa-sun";
       }
       if(FEATURES.charts) updateChart();
-      if(FEATURES.cards) renderMsi();
+      if(FEATURES.accounts) renderMsi();
     };
 
     const isProbablyIOS = () => {
@@ -4320,7 +4882,10 @@
           <div class="list-item">
             <div>
               <div class="fw-bold">${account.name}</div>
-              <div class="text-muted small">${account.bank || "Banco no definido"} ${account.last4 ? `• ${account.last4}` : ""}</div>
+              <div class="text-muted small">
+                ${getAccountTypeLabel(account.type)}${account.type === "credit" ? ` • Corte: ${account.cutoffDay || account.cutDay || "-"} • Pago: ${account.payDay || "-"}` : ""}
+              </div>
+              ${account.type === "credit" ? `<div class="text-muted small">Pago NI: ${formatMoney(account.noInterestPayment || account.payGoal || 0)} • Límite: ${formatMoney(account.creditLimit || account.limit || 0)}</div>` : ""}
             </div>
             <div class="d-flex align-items-center gap-2">
               <div class="form-check form-switch m-0">
@@ -4387,15 +4952,12 @@
     };
 
     window.toggleAccountActive = async (id, isActive) => {
-      await updateDoc(getUserDoc("accounts", id), { isActive });
+      await updateDoc(getUserDoc("accounts", id), { isActive, updatedAt: serverTimestamp() });
     };
 
     window.editAccount = async (id) => {
-      const account = accounts.find(a=>a.id === id);
-      if(!account) return;
-      const next = prompt("Nuevo nombre de cuenta", account.name);
-      if(next && next.trim()){
-        await updateDoc(getUserDoc("accounts", id), { name: next.trim() });
+      if(typeof window.editCard === "function"){
+        window.editCard(id);
       }
     };
 
@@ -4448,12 +5010,28 @@
     }
 
     const addAccountBtn = document.getElementById("add-account-btn");
+    const settingsAccountType = document.getElementById("new-account-type");
+    const toggleSettingsAccountFields = () => {
+      const isCredit = settingsAccountType?.value === "credit";
+      ["new-account-cutoff", "new-account-payday", "new-account-no-interest", "new-account-limit"].forEach((id)=>{
+        const field = document.getElementById(id);
+        if(!field) return;
+        field.disabled = !isCredit;
+        if(!isCredit) field.value = "";
+      });
+    };
+    if(settingsAccountType){
+      settingsAccountType.addEventListener("change", toggleSettingsAccountFields);
+      toggleSettingsAccountFields();
+    }
     if(addAccountBtn){
       addAccountBtn.addEventListener("click", async () => {
         const name = document.getElementById("new-account-name")?.value.trim();
         const type = document.getElementById("new-account-type")?.value || "other";
-        const last4 = document.getElementById("new-account-last4")?.value.trim() || null;
-        const bank = document.getElementById("new-account-bank")?.value.trim() || null;
+        const cutoffDay = parseInt(document.getElementById("new-account-cutoff")?.value || "", 10);
+        const payDay = parseInt(document.getElementById("new-account-payday")?.value || "", 10);
+        const noInterestPayment = parseFloat(document.getElementById("new-account-no-interest")?.value || "");
+        const creditLimit = parseFloat(document.getElementById("new-account-limit")?.value || "");
         if(!name) return;
         const limit = appSettings?.limits?.accounts;
         if(appSettings?.plan === "free" && limit && accounts.length >= limit){
@@ -4463,14 +5041,19 @@
         await addDoc(getUserCollection("accounts"), {
           name,
           type,
-          last4,
-          bank,
+          cutoffDay: type === "credit" && Number.isFinite(cutoffDay) ? cutoffDay : null,
+          payDay: type === "credit" && Number.isFinite(payDay) ? payDay : null,
+          noInterestPayment: type === "credit" && Number.isFinite(noInterestPayment) ? noInterestPayment : null,
+          creditLimit: type === "credit" && Number.isFinite(creditLimit) ? creditLimit : null,
           isActive: true,
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
         });
         document.getElementById("new-account-name").value = "";
-        document.getElementById("new-account-last4").value = "";
-        document.getElementById("new-account-bank").value = "";
+        document.getElementById("new-account-cutoff").value = "";
+        document.getElementById("new-account-payday").value = "";
+        document.getElementById("new-account-no-interest").value = "";
+        document.getElementById("new-account-limit").value = "";
       });
     }
 
@@ -4517,7 +5100,7 @@
       subscribeSettings();
       subscribeOwners();
       subscribeCategories();
-      subscribeCards();
+      subscribeAccounts();
       subscribeTrans();
       if(FEATURES.goals) subscribeGoals();
       resetForm();
@@ -4557,6 +5140,7 @@
           const data = docSnap.data();
           owners.push({ id: docSnap.id, ...data });
         });
+        if(window.appData) window.appData.owners = owners;
         updateOwnerSelect();
         renderSettingsOwners();
         const goalOwnerSelect = document.getElementById("goal-contribution-owner");
@@ -4589,6 +5173,7 @@
           const data = docSnap.data();
           categories.push({ id: docSnap.id, ...data });
         });
+        if(window.appData) window.appData.categories = categories;
         trans.forEach((t)=>{
           if(t.categoryId){
             t.categoryName = getCategoryName(t.categoryId);
@@ -4604,19 +5189,18 @@
     }
 
     // Accounts subscribe (front filter)
-    function subscribeCards(){
+    function subscribeAccounts(){
       setLoaderMsg("Cargando cuentas...");
       const qCards=query(getUserCollection("accounts"), orderBy("name"));
       let firstSnapshot = true;
-      unsubCards = onSnapshot(qCards, (snap)=>{
+      unsubAccounts = onSnapshot(qCards, (snap)=>{
         if(firstSnapshot){
-          markAppReady("cards");
+          markAppReady("accounts");
           firstSnapshot = false;
         }
         const tempAll=[];
         snap.forEach(d=>{ const c=d.data(); c.id=d.id; tempAll.push(c); });
 
-        cards=[];
         accounts=[];
         let tDebt=0, tLimit=0;
 
@@ -4632,18 +5216,18 @@
         const visibleAccounts = temp.filter(c=>c.isActive !== false);
 
         temp.forEach(c=>{
-          cards.push(c);
           accounts.push(c);
         });
+        if(window.appData) window.appData.accounts = accounts;
 
         visibleAccounts.forEach(c=>{
 
           const debt=parseFloat(c.balance||0);
-          const limit=parseFloat(c.limit||0);
+          const limit=parseFloat(c.creditLimit || c.limit || 0);
           tDebt+=debt; tLimit+=limit;
 
           const today=new Date().getDate();
-          const cut=parseInt(c.cutDay||1);
+          const cut=parseInt(c.cutoffDay || c.cutDay || 1);
           let diff=parseInt(c.payDay||1)-today; if(diff<0) diff+=30;
 
           let status={text:'NORMAL', bg:'bg-warning-light'};
@@ -4707,7 +5291,7 @@
         renderSettingsAccounts();
 
       }, (err)=>{
-        console.error("Cards snapshot error:", err);
+        console.error("Accounts snapshot error:", err);
         showStartupError(`Error leyendo cuentas: ${getFirestoreErrorMessage(err)}`);
       });
     }
@@ -5323,14 +5907,14 @@
       list.innerHTML='';
       let hasGoals=false;
 
-      cards.forEach(c=>{
+      accounts.forEach(c=>{
         if(c.isActive === false) return;
-        const goal=parseFloat(c.payGoal||0);
+        const goal=parseFloat(c.noInterestPayment || c.payGoal || 0);
         if(goal<=0) return;
 
         hasGoals=true;
         const today=new Date();
-        const cutDay=parseInt(c.cutDay||1);
+        const cutDay=parseInt(c.cutoffDay || c.cutDay || 1);
 
         let cycleStart=new Date();
         if(today.getDate()<cutDay) cycleStart.setMonth(cycleStart.getMonth()-1);
@@ -5338,7 +5922,8 @@
 
         let paid=0;
         trans.forEach(t=>{
-          if(t.cardId===c.id && t.type==='payment' && t.date.toDate()>cycleStart) paid += t.amount;
+          const tAccountId = t.accountId || t.cardId;
+          if(tAccountId===c.id && t.type==='payment' && t.date.toDate()>cycleStart) paid += t.amount;
         });
 
         const pct=Math.min((paid/goal)*100,100);
@@ -5359,14 +5944,14 @@
         `;
       });
 
-      if(!hasGoals) list.innerHTML = '<div class="text-center text-muted small p-3">Configura el "Pago para no generar intereses" al editar una tarjeta.</div>';
+      if(!hasGoals) list.innerHTML = '<div class="text-center text-muted small p-3">Configura el "Pago para no generar intereses" al editar una cuenta.</div>';
       if(privacy) togglePrivacy();
     }
 
     function updateSmartPick(){
       const today=new Date().getDate(); let best=null, min=999;
-      cards.forEach(c=>{
-        let d=today-parseInt(c.cutDay||1);
+      accounts.forEach(c=>{
+        let d=today-parseInt(c.cutoffDay || c.cutDay || 1);
         if(d>=0 && d<min){ min=d; best=c; }
       });
       const area=document.getElementById('smart-area');
@@ -5428,7 +6013,7 @@
     function getCardAlerts(card, now){
       const alerts = [];
       const payDay = parseInt(card.payDay || 1, 10);
-      const cutDay = parseInt(card.cutDay || 1, 10);
+      const cutDay = parseInt(card.cutoffDay || card.cutDay || 1, 10);
 
       const payDate = getNextOccurrence(now, payDay);
       const cutDate = getNextOccurrence(now, cutDay);
@@ -5645,23 +6230,23 @@
       const now = new Date();
       const alerts = await computeAlerts(getActiveOwner(), { force });
 
-      cards.forEach(card => {
-        const cardAlerts = getCardAlerts(card, now);
-        cardAlerts.forEach(alert => {
+      accounts.forEach(account => {
+        const accountAlerts = getCardAlerts(account, now);
+        accountAlerts.forEach(alert => {
           const typeLabel = alert.type === "pay" ? "Pago" : "Corte";
           alerts.push({
-            id: `card-${card.id}-${alert.type}-${alert.diff}`,
-            kind: "card",
+            id: `account-${account.id}-${alert.type}-${alert.diff}`,
+            kind: "account",
             severity: "info",
             title: alert.title,
             message: alert.text,
-            meta: `${card.name} · ${typeLabel}`,
+            meta: `${account.name} · ${typeLabel}`,
             sortValue: alert.diff
           });
         });
       });
 
-      const cardAlertCount = alerts.filter(alert => alert.kind === "card").length;
+      const cardAlertCount = alerts.filter(alert => alert.kind === "account").length;
       alerts.sort((a, b) => {
         const sortA = Number.isFinite(a.sortValue) ? a.sortValue : 99;
         const sortB = Number.isFinite(b.sortValue) ? b.sortValue : 99;
@@ -6077,8 +6662,8 @@
         const d = rawDate instanceof Date ? rawDate : new Date(rawDate);
         if (d.getMonth() !== selMonth || d.getFullYear() !== selYear) return;
         expensesCount += 1;
-        const category = (t.category || "Sin categoría").trim() || "Sin categoría";
-        totals.set(category, (totals.get(category) || 0) + t.amount);
+        const categoryKey = t.categoryId || t.category || "uncategorized";
+        totals.set(categoryKey, (totals.get(categoryKey) || 0) + t.amount);
       });
 
       const sorted = Array.from(totals.entries()).sort((a, b) => b[1] - a[1]);
@@ -6087,7 +6672,7 @@
       if (others > 0) top.push(["Otros", others]);
 
       return {
-        labels: top.map(([label]) => label),
+        labels: top.map(([label]) => resolveCategoryLabel(label)),
         data: top.map(([, amount]) => amount),
         expensesCount,
         categoryCount: top.length
@@ -6279,6 +6864,11 @@
       return account.name;
     }
 
+    function getAccountTypeLabel(type){
+      const map = { cash: "Efectivo", debit: "Débito", credit: "Crédito", other: "Otro" };
+      return map[type] || "Cuenta";
+    }
+
     function getCategoryById(categoryId){
       return categories.find(c=>c.id === categoryId) || null;
     }
@@ -6286,6 +6876,14 @@
     function getCategoryName(categoryId){
       const category = getCategoryById(categoryId);
       return category?.name || "Sin categoría";
+    }
+
+    function resolveCategoryLabel(categoryKey){
+      if(!categoryKey || categoryKey === "uncategorized") return "Sin categoría";
+      const category = getCategoryById(categoryKey);
+      if(category?.name) return category.name;
+      const fallback = categories.find(cat=>cat.name?.toLowerCase() === String(categoryKey).toLowerCase());
+      return fallback?.name || "Sin categoría";
     }
 
     // =========================
@@ -6367,18 +6965,17 @@
         dateISO: (t.date?.toDate ? t.date.toDate().toISOString() : null)
       };
     }
-    function cardToPlain(c){
+    function accountToPlain(c){
       return {
         id: c.id,
         name: c.name,
         type: c.type || "other",
-        bank: c.bank || null,
-        last4: c.last4 || null,
-        cutDay: Number(c.cutDay||1),
+        cutoffDay: Number(c.cutoffDay || c.cutDay || 1),
         payDay: Number(c.payDay||1),
-        limit: Number(c.limit||0),
+        noInterestPayment: Number(c.noInterestPayment || c.payGoal || 0),
+        creditLimit: Number(c.creditLimit || c.limit || 0),
         balance: Number(c.balance||0),
-        payGoal: Number(c.payGoal||0)
+        legacySource: c.legacySource || null
       };
     }
 
@@ -6410,14 +7007,14 @@
     }
 
     window.editCard=(id)=>{
-      const c=cards.find(x=>x.id===id); if(!c) return;
+      const c=accounts.find(x=>x.id===id); if(!c) return;
       document.getElementById('c-id').value=id;
       document.getElementById('c-name').value=c.name;
-      document.getElementById('c-cut').value=c.cutDay;
-      document.getElementById('c-pay').value=c.payDay;
-      document.getElementById('c-limit').value=c.limit;
+      document.getElementById('c-cut').value=c.cutoffDay || c.cutDay || "";
+      document.getElementById('c-pay').value=c.payDay || "";
+      document.getElementById('c-limit').value=c.creditLimit || c.limit || "";
       document.getElementById('c-bal').value=c.balance;
-      document.getElementById('c-goal').value=c.payGoal||0;
+      document.getElementById('c-goal').value=c.noInterestPayment || c.payGoal || 0;
       document.getElementById('btn-del-card').style.display = "block";
       cardModal = new bootstrap.Modal(document.getElementById('modalCard'));
       cardModal.show();
@@ -6429,22 +7026,23 @@
 
       const payload={
         name: document.getElementById('c-name').value,
-        cutDay: parseInt(document.getElementById('c-cut').value||1),
+        cutoffDay: parseInt(document.getElementById('c-cut').value||1),
         payDay: parseInt(document.getElementById('c-pay').value||1),
-        limit: parseFloat(document.getElementById('c-limit').value||0),
+        creditLimit: parseFloat(document.getElementById('c-limit').value||0),
         balance: parseFloat(document.getElementById('c-bal').value||0),
-        payGoal: parseFloat(document.getElementById('c-goal').value||0)
+        noInterestPayment: parseFloat(document.getElementById('c-goal').value||0),
+        updatedAt: serverTimestamp()
       };
 
       await updateDoc(getUserDoc("accounts", id), payload);
       cardModal.hide();
 
-      const updated = cards.find(x=>x.id===id);
+      const updated = accounts.find(x=>x.id===id);
       await sheetsSend({
-        entity: "card",
+        entity: "account",
         action: "update",
         owner: OWNER,
-        data: cardToPlain({ ...(updated||{}), ...payload, id })
+        data: accountToPlain({ ...(updated||{}), ...payload, id })
       });
     });
 
@@ -6528,14 +7126,14 @@
 
     window.deleteCard=async()=>{
       const id=document.getElementById('c-id').value;
-      const c=cards.find(x=>x.id===id);
+      const c=accounts.find(x=>x.id===id);
       if(!c) return;
       if(confirm("¿Eliminar cuenta?")){
-        await updateDoc(getUserDoc("accounts", id), { isActive: false });
+        await updateDoc(getUserDoc("accounts", id), { isActive: false, updatedAt: serverTimestamp() });
         cardModal.hide();
 
         await sheetsSend({
-          entity: "card",
+          entity: "account",
           action: "delete",
           owner: OWNER,
           data: { id }
@@ -6553,11 +7151,11 @@
 
       const type=document.querySelector('input[name="ttype"]:checked')?.value;
       const amt=parseFloat(document.getElementById('t-amount').value);
-      const accountId=FEATURES.cards ? document.getElementById('t-card').value : null;
+      const accountId=FEATURES.accounts ? document.getElementById('t-card').value : null;
       const cardNameInput = document.getElementById('t-card-name')?.value?.trim();
       const categoryId = document.getElementById('t-cat').value;
       const dateValue = document.getElementById('t-date').value;
-      if(!type || !dateValue || !Number.isFinite(amt) || amt <= 0 || (FEATURES.cards && !accountId)){
+      if(!type || !dateValue || !Number.isFinite(amt) || amt <= 0 || (FEATURES.accounts && !accountId)){
         showToast("Completa los datos requeridos para guardar.", { tone: "warning", duration: 2400 });
         haptic("error");
         return;
@@ -6567,15 +7165,15 @@
 
       try{
         const tid=document.getElementById('trans-id').value;
-        const cObj = FEATURES.cards ? cards.find(c=>c.id===accountId) : null;
-        if(FEATURES.cards && !cObj) throw new Error("Cuenta no encontrada");
+        const cObj = FEATURES.accounts ? accounts.find(c=>c.id===accountId) : null;
+        if(FEATURES.accounts && !cObj) throw new Error("Cuenta no encontrada");
         const previousTrans = tid ? trans.find(t=>t.id===tid) : null;
         const categoryObj = categoryId ? getCategoryById(categoryId) : null;
 
         // Reversión si es edición
         let newBal = null;
         let batch = null;
-        if(FEATURES.cards){
+        if(FEATURES.accounts){
           newBal = parseFloat(cObj.balance||0);
           batch = writeBatch(db);
           if(tid){
@@ -6604,10 +7202,10 @@
           ownerName: getOwnerLabel(OWNER),
           amount: amt,
           type,
-          accountId: FEATURES.cards ? accountId : null,
-          accountName: FEATURES.cards ? cObj.name : (cardNameInput || null),
-          cardId: FEATURES.cards ? accountId : null,
-          cardName: FEATURES.cards ? cObj.name : (cardNameInput || null),
+          accountId: FEATURES.accounts ? accountId : null,
+          accountName: FEATURES.accounts ? cObj.name : (cardNameInput || null),
+          cardId: FEATURES.accounts ? accountId : null,
+          cardName: FEATURES.accounts ? cObj.name : (cardNameInput || null),
           concept: document.getElementById('t-concept').value,
           categoryId: categoryId || null,
           categoryName: categoryObj ? categoryObj.name : null,
@@ -6622,10 +7220,10 @@
         };
 
         if(tid){
-          if(FEATURES.cards && batch){
+          if(FEATURES.accounts && batch){
             const cardRef=getUserDoc("accounts", accountId);
             batch.update(getUserDoc("expenses", tid), payload);
-            batch.update(cardRef, { balance:newBal });
+            batch.update(cardRef, { balance:newBal, updatedAt: serverTimestamp() });
             await batch.commit();
           }else{
             await updateDoc(getUserDoc("expenses", tid), payload);
@@ -6641,9 +7239,9 @@
 
         }else{
           const createdRef = await addDoc(getUserCollection("expenses"), payload);
-          if(FEATURES.cards){
+          if(FEATURES.accounts){
             const cardRef=getUserDoc("accounts", accountId);
-            await updateDoc(cardRef, { balance:newBal });
+            await updateDoc(cardRef, { balance:newBal, updatedAt: serverTimestamp() });
           }
 
           await sheetsSend({
@@ -6703,7 +7301,7 @@
 
       document.getElementById('trans-id').value=id;
       document.getElementById('t-amount').value=t.amount;
-      if(FEATURES.cards){
+      if(FEATURES.accounts){
         document.getElementById('t-card').value=t.accountId || t.cardId;
       }else{
         const cardNameInput = document.getElementById('t-card-name');
@@ -6758,8 +7356,8 @@
       const t=trans.find(x=>x.id===id);
       if(!t) return;
 
-      if(FEATURES.cards){
-        const cObj=cards.find(c=>c.id===t.accountId || c.id===t.cardId);
+      if(FEATURES.accounts){
+        const cObj=accounts.find(c=>c.id===t.accountId || c.id===t.cardId);
         if(!cObj){
           showToast("Cuenta no encontrada para recalcular saldo.", { tone: "warning", duration: 2400 });
           return;
@@ -6855,7 +7453,7 @@
         renderHistory();
       }
       if(FEATURES.charts) updateChart();
-      if(FEATURES.cards){
+      if(FEATURES.accounts){
         updatePaymentMonitor();
         renderMsi();
       }
