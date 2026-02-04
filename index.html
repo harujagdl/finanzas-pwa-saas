@@ -888,6 +888,22 @@
           <label class="small text-muted fw-bold">Contraseña</label>
           <input type="password" id="auth-password" class="form-control" placeholder="Mínimo 6 caracteres" minlength="6" autocomplete="current-password" required />
         </div>
+        <div id="auth-register-extra" class="d-none">
+          <div class="mb-3">
+            <label class="small text-muted fw-bold">Nombre (opcional)</label>
+            <input type="text" id="auth-name" class="form-control" placeholder="Tu nombre" autocomplete="name" />
+          </div>
+          <div class="mb-3">
+            <label class="small text-muted fw-bold">Teléfono (opcional)</label>
+            <input type="tel" id="auth-phone" class="form-control" placeholder="+52 55 0000 0000" autocomplete="tel" />
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="auth-consent" />
+            <label class="form-check-label small text-muted" for="auth-consent">
+              Acepto que me contacten para soporte/seguimiento del piloto.
+            </label>
+          </div>
+        </div>
         <div class="d-grid gap-2">
           <button class="btn btn-primary" type="submit" id="auth-submit">Entrar</button>
           <button class="btn btn-outline-secondary" type="button" id="auth-secondary">Crear cuenta</button>
@@ -1965,6 +1981,10 @@
     const authMessage = document.getElementById("auth-message");
     const authEmail = document.getElementById("auth-email");
     const authPassword = document.getElementById("auth-password");
+    const authRegisterExtra = document.getElementById("auth-register-extra");
+    const authNameInput = document.getElementById("auth-name");
+    const authPhoneInput = document.getElementById("auth-phone");
+    const authConsentInput = document.getElementById("auth-consent");
     const authSubmitBtn = document.getElementById("auth-submit");
     const authSecondaryBtn = document.getElementById("auth-secondary");
     const authToggleLink = document.getElementById("auth-toggle-link");
@@ -2011,6 +2031,7 @@
       mode: "landing"
     };
     window.PILOT_DISABLE_CSV = true;
+    const APP_VERSION = "piloto";
 
     if(googleAuthBtn){
       googleAuthBtn.dataset.labelHtml = `<i class="fab fa-google me-2"></i> Continuar con Google`;
@@ -2108,7 +2129,17 @@
     function setAuthLoading(isLoading, options = {}){
       const { showSubmitLoading = true } = options;
       authProcessing = isLoading;
-      const elements = [authEmail, authPassword, authSubmitBtn, authSecondaryBtn, authToggleLink, googleAuthBtn];
+      const elements = [
+        authEmail,
+        authPassword,
+        authNameInput,
+        authPhoneInput,
+        authConsentInput,
+        authSubmitBtn,
+        authSecondaryBtn,
+        authToggleLink,
+        googleAuthBtn
+      ];
       elements.forEach((el) => {
         if(el) el.disabled = isLoading;
       });
@@ -2150,6 +2181,14 @@
       if(authToggleLink) authToggleLink.textContent = isRegister ? "¿Ya tienes cuenta? Inicia sesión" : "¿No tienes cuenta? Regístrate";
       if(authPassword){
         authPassword.setAttribute("autocomplete", isRegister ? "new-password" : "current-password");
+      }
+      if(authRegisterExtra){
+        authRegisterExtra.classList.toggle("d-none", !isRegister);
+      }
+      if(!isRegister){
+        if(authNameInput) authNameInput.value = "";
+        if(authPhoneInput) authPhoneInput.value = "";
+        if(authConsentInput) authConsentInput.checked = false;
       }
       setAuthMessage("");
     }
@@ -2252,6 +2291,96 @@
       };
       await setDoc(profileRef, profile, { merge: true });
       return profile;
+    }
+
+    function getProviderLabel(providerId){
+      if(!providerId) return "Email";
+      if(providerId.includes("google")) return "Google";
+      if(providerId.includes("password")) return "Email";
+      return providerId;
+    }
+
+    function getRegisterExtraData(){
+      const nombre = authNameInput?.value?.trim() || "";
+      const telefono = authPhoneInput?.value?.trim() || "";
+      const consentimientoContacto = Boolean(authConsentInput?.checked);
+      return { nombre, telefono, consentimientoContacto };
+    }
+
+    function isNewAuthUser(user){
+      const createdAt = user?.metadata?.creationTime;
+      const lastSignInAt = user?.metadata?.lastSignInTime;
+      return Boolean(createdAt && lastSignInAt && createdAt === lastSignInAt);
+    }
+
+    async function createLeadOnSignup(user, extra){
+      if(!db || !user) return null;
+      const leadRef = doc(db, "leads", user.uid);
+      const existing = await getDoc(leadRef);
+      if(existing.exists()){
+        return existing.data();
+      }
+      const payload = {
+        uid: user.uid,
+        email: user.email || "",
+        displayName: user.displayName || "",
+        nombre: extra?.nombre || "",
+        telefono: extra?.telefono || "",
+        consentimientoContacto: Boolean(extra?.consentimientoContacto),
+        providerId: user.providerData?.[0]?.providerId ?? "password",
+        createdAt: serverTimestamp(),
+        appVersion: APP_VERSION,
+        userAgent: navigator.userAgent
+      };
+      await setDoc(leadRef, payload, { merge: true });
+      return payload;
+    }
+
+    async function notifyAdminNewSignup(leadData){
+      if(!db || !leadData) return;
+      const consentimiento = Boolean(leadData.consentimientoContacto);
+      const nombre = leadData.nombre || "No proporcionado";
+      const telefono = consentimiento ? (leadData.telefono || "No proporcionado") : "No proporcionado";
+      const consentimientoLabel = consentimiento ? "Sí" : "No";
+      const providerLabel = getProviderLabel(leadData.providerId);
+      const timestamp = new Date();
+      const formattedDate = timestamp.toLocaleString("es-MX");
+      const note = consentimiento ? "" : "Sin consentimiento para contacto.";
+
+      const textLines = [
+        "Nuevo registro en Finanzas PWA (Piloto)",
+        `Email: ${leadData.email || "No proporcionado"}`,
+        `Nombre: ${nombre}`,
+        `Teléfono: ${telefono}`,
+        `Consentimiento de contacto: ${consentimientoLabel}`,
+        `Proveedor: ${providerLabel}`,
+        `Fecha/hora: ${formattedDate}`,
+        `UID: ${leadData.uid || "No proporcionado"}`,
+        note
+      ].filter(Boolean);
+
+      const html = `
+        <h2>Nuevo registro en Finanzas PWA (Piloto)</h2>
+        <ul>
+          <li><strong>Email:</strong> ${leadData.email || "No proporcionado"}</li>
+          <li><strong>Nombre:</strong> ${nombre}</li>
+          <li><strong>Teléfono:</strong> ${telefono}</li>
+          <li><strong>Consentimiento de contacto:</strong> ${consentimientoLabel}</li>
+          <li><strong>Proveedor:</strong> ${providerLabel}</li>
+          <li><strong>Fecha/hora:</strong> ${formattedDate}</li>
+          <li><strong>UID:</strong> ${leadData.uid || "No proporcionado"}</li>
+        </ul>
+        ${note ? `<p><em>${note}</em></p>` : ""}
+      `;
+
+      await addDoc(collection(db, "mail"), {
+        to: ["yair.tenorio.silva@gmail.com"],
+        message: {
+          subject: "Nuevo registro en Finanzas PWA (Piloto)",
+          text: textLines.join("\n"),
+          html
+        }
+      });
     }
 
     function getUserCollection(collectionName){
@@ -2782,12 +2911,16 @@
       }
     }
 
-    async function registerUser(email, password){
+    async function registerUser(email, password, extra){
       if(!auth) throw new Error("Auth no disponible");
       const credential = await createUserWithEmailAndPassword(auth, email, password);
       currentUser = { uid: credential.user.uid, email: credential.user.email, displayName: credential.user.displayName || "" };
       window.currentUser = currentUser;
       window.userProfile = await ensureUserProfile(credential.user);
+      if(db){
+        const leadData = await createLeadOnSignup(credential.user, extra);
+        await notifyAdminNewSignup(leadData);
+      }
       if(db){
         try{
           await setDoc(doc(db, "admin", "registrations", credential.user.uid), {
@@ -2837,6 +2970,10 @@
         const result = await signInWithPopup(auth, provider);
         if(result?.user){
           window.userProfile = await ensureUserProfile(result.user);
+          if(isNewAuthUser(result.user) && db){
+            const leadData = await createLeadOnSignup(result.user, getRegisterExtraData());
+            await notifyAdminNewSignup(leadData);
+          }
         }
       }catch(err){
         if(shouldFallbackToRedirect(err)){
@@ -2864,6 +3001,10 @@
         const result = await getRedirectResult(auth);
         if(result?.user){
           window.userProfile = await ensureUserProfile(result.user);
+          if(isNewAuthUser(result.user) && db){
+            const leadData = await createLeadOnSignup(result.user, getRegisterExtraData());
+            await notifyAdminNewSignup(leadData);
+          }
         }
       }catch(err){
         console.warn("Google redirect error:", err?.message || err);
@@ -2949,7 +3090,7 @@
       setAuthMessage("");
       try{
         if(authMode === "register"){
-          await registerUser(email, password);
+          await registerUser(email, password, getRegisterExtraData());
         }else{
           await loginUser(email, password);
         }
