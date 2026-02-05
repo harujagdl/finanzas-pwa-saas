@@ -21,13 +21,6 @@ jobs:
         with:
           node-version: 18
 
-      - name: Debug functions dependencies
-        run: |
-          node -v
-          npm -v
-          ls -lah
-          ls -lah package-lock.json || true
-
       - name: Install functions dependencies
         run: npm install --omit=dev
 
@@ -36,20 +29,15 @@ jobs:
         run: |
           printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" > /tmp/serviceAccount.json
 
-      - name: Configure Firebase (functions config)
-        working-directory: .
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
-        run: |
-          npx firebase-tools@13.35.1 functions:config:set \
-            sendgrid.key="${{ secrets.SENDGRID_API_KEY }}" \
-            sendgrid.from="${{ secrets.SENDGRID_FROM }}" \
-            notify.to="${{ secrets.NOTIFY_TO_EMAIL }}" \
-            --project finanzas-pwa-saas-pilot
-
       - name: Deploy Functions
         working-directory: .
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM: ${{ secrets.SENDGRID_FROM }}
+          NOTIFY_TO_EMAIL: ${{ secrets.NOTIFY_TO_EMAIL }}
         run: |
-          npx firebase-tools@13.35.1 deploy --only functions --project finanzas-pwa-saas-pilot
+          npx firebase-tools@13.35.1 deploy \
+            --only functions \
+            --project finanzas-pwa-saas-pilot \
+            --non-interactive
