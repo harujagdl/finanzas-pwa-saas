@@ -1,196 +1,125 @@
 "use strict";
 
 const admin = require("firebase-admin");
-const functions = require("firebase-functions");
-const { logger } = functions;
-const { onUserCreated } = require("firebase-functions/v2/auth");
+const functions = require("firebase-functions"); // v1 API (compatible)
 const sgMail = require("@sendgrid/mail");
 
 admin.initializeApp();
 const db = admin.firestore();
 
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || functions.config()?.sendgrid?.key;
-const SENDGRID_FROM = process.env.SENDGRID_FROM || functions.config()?.sendgrid?.from;
-const NOTIFY_TO_EMAIL = process.env.NOTIFY_TO_EMAIL || functions.config()?.notify?.to;
+// Lee config desde env (GitHub Actions secrets) o desde functions:config
+const SENDGRID_API_KEY =
+  process.env.SENDGRID_API_KEY || (functions.config().sendgrid && functions.config().sendgrid.key);
+const SENDGRID_FROM =
+  process.env.SENDGRID_FROM || (functions.config().sendgrid && functions.config().sendgrid.from);
+const NOTIFY_TO_EMAIL =
+  process.env.NOTIFY_TO_EMAIL || (functions.config().notify && functions.config().notify.to);
 
+// (Opcional) enfriamiento simple para no spamear si hay registros en ráfaga
 const COOLDOWN_MS = 60 * 1000;
-const WINDOW_MS = 10 * 60 * 1000;
-const MAX_WINDOW_COUNT = 25;
-const CONSOLE_URL = "https://console.firebase.google.com/project/finanzas-pwa-saas-pilot/authentication/users";
 
-function getProviderIds(providerData = []) {
-  return providerData.map((provider) => provider?.providerId).filter(Boolean);
-}
-
-function buildLeadPayload({ user, providerIds, createdAt, notifyStatus, notifiedAt, errorMessage }) {
-  const payload = {
-    uid: user.uid,
-    email: user.email || null,
-    providerIds,
-    createdAt: createdAt || admin.firestore.FieldValue.serverTimestamp(),
-    source: "auth_onCreate",
-    notifiedAt: notifiedAt || null,
-    notifyStatus
-  };
-
-  if (errorMessage) {
-    payload.errorMessage = errorMessage;
+function assertConfig() {
+  if (!SENDGRID_API_KEY || !SENDGRID_FROM || !NOTIFY_TO_EMAIL) {
+    throw new Error(
+      "Faltan variables de SendGrid. Revisa SENDGRID_API_KEY, SENDGRID_FROM, NOTIFY_TO_EMAIL (env o functions:config)."
+    );
   }
-
-  return payload;
 }
 
-function buildEmailBody({ user }) {
-  const lines = [
-    "Nuevo registro (Finanzas PWA SaaS)",
-    `UID: ${user.uid}`,
-    `Email: ${user.email || "N/A"}`
-  ];
+async function canSendNow() {
+  const ref = db.doc("meta/notifyThrottle");
+  const snap = await ref.get();
+  const data = snap.exists ? snap.data() : {};
+  const lastSentAt = data?.lastSentAt?.toMillis ? data.lastSentAt.toMillis() : 0;
+  const now = Date.now();
 
+  if (now - lastSentAt < COOLDOWN_MS) return { ok: false, ref, now };
+  return { ok: true, ref, now };
+}
+
+async function markSent(ref) {
+  await ref.set({ lastSentAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+}
+
+function buildEmail({ uid, email }) {
+  const subject = "Nuevo registro (Finanzas PWA SaaS)";
+  const text = `Nuevo registro (Finanzas PWA SaaS)\nUID: ${uid}\nEmail: ${email || "N/A"}`;
   const html = `
     <h2>Nuevo registro (Finanzas PWA SaaS)</h2>
     <ul>
-      <li><strong>UID:</strong> ${user.uid}</li>
-      <li><strong>Email:</strong> ${user.email || "N/A"}</li>
+      <li><strong>UID:</strong> ${uid}</li>
+      <li><strong>Email:</strong> ${email || "N/A"}</li>
     </ul>
   `;
-
-  return { text: lines.join("\n"), html };
+  return { subject, text, html };
 }
 
-function getSendgridConfig() {
-  return {
-    apiKey: SENDGRID_API_KEY,
-    from: SENDGRID_FROM,
-    to: NOTIFY_TO_EMAIL
-  };
-}
+// ✅ Trigger v1: Auth user create
+exports.onAuthUserCreate = functions.auth.user().onCreate(async (user) => {
+  const uid = user?.uid;
+  const email = user?.email || null;
 
-function assertSendgridConfig({ apiKey, from, to }) {
-  if (!apiKey || !from || !to) {
-    throw new Error("SendGrid config missing");
-  }
-}
+  if (!uid) return;
 
-async function sendNotificationEmail({ user, providerIds }) {
-  const config = getSendgridConfig();
-  assertSendgridConfig(config);
-  sgMail.setApiKey(config.apiKey);
+  const leadRef = db.doc(`leads/${uid}`);
 
-  const { text, html } = buildEmailBody({ user });
-
-  await sgMail.send({
-    to: config.to,
-    from: config.from,
-    subject: "Nuevo registro (Finanzas PWA SaaS)",
-    text,
-    html
-  });
-}
-
-function toShortError(err) {
-  const message = err?.message || "Error desconocido";
-  return message.length > 180 ? `${message.slice(0, 177)}...` : message;
-}
-
-exports.onAuthUserCreate = onUserCreated(async (event) => {
-  const user = event.data;
-  if (!user?.uid) {
-    logger.warn("onAuthUserCreate: missing user data.");
+  // Evitar duplicado si ya existe
+  const leadSnap = await leadRef.get();
+  if (leadSnap.exists) {
     return;
   }
 
-  const leadRef = db.doc(`leads/${user.uid}`);
-  const throttleRef = db.doc("meta/notifyThrottle");
-  const providerIds = getProviderIds(user.providerData || []);
-  const now = admin.firestore.Timestamp.now();
+  // Guardar lead primero (para tener rastro aunque falle el email)
+  await leadRef.set(
+    {
+      uid,
+      email,
+      source: "auth_onCreate",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      notifyStatus: "pending",
+    },
+    { merge: true }
+  );
 
   try {
-    const leadSnap = await leadRef.get();
-    if (leadSnap.exists) {
-      const existing = leadSnap.data() || {};
-      await leadRef.set(
-        buildLeadPayload({
-          user,
-          providerIds,
-          createdAt: existing.createdAt,
-          notifyStatus: existing.notifyStatus || "skipped_duplicate",
-          notifiedAt: existing.notifiedAt || null,
-          errorMessage: existing.errorMessage
-        }),
-        { merge: true }
-      );
+    assertConfig();
+    sgMail.setApiKey(SENDGRID_API_KEY);
+
+    const { ok, ref } = await canSendNow();
+    if (!ok) {
+      await leadRef.set({ notifyStatus: "skipped_rate_limit" }, { merge: true });
       return;
     }
 
-    const throttleSnap = await throttleRef.get();
-    const throttleData = throttleSnap.exists ? throttleSnap.data() : {};
-    let windowStartAt = throttleData?.windowStartAt || now;
-    let windowCount = Number.isFinite(throttleData?.windowCount) ? throttleData.windowCount : 0;
-    const lastSentAt = throttleData?.lastSentAt || null;
+    const { subject, text, html } = buildEmail({ uid, email });
 
-    if (now.toMillis() - windowStartAt.toMillis() > WINDOW_MS) {
-      windowStartAt = now;
-      windowCount = 0;
-    }
+    await sgMail.send({
+      to: NOTIFY_TO_EMAIL,
+      from: SENDGRID_FROM,
+      subject,
+      text,
+      html,
+    });
 
-    const withinCooldown = lastSentAt && now.toMillis() - lastSentAt.toMillis() < COOLDOWN_MS;
-    const overWindowLimit = windowCount >= MAX_WINDOW_COUNT;
-    const shouldSend = !withinCooldown && !overWindowLimit;
-
-    let notifyStatus = shouldSend ? "sent" : "skipped_rate_limit";
-    let notifiedAt = null;
-    let errorMessage = null;
-
-    if (shouldSend) {
-      try {
-        await sendNotificationEmail({ user, providerIds });
-        notifiedAt = now;
-        windowCount += 1;
-      } catch (err) {
-        notifyStatus = "failed";
-        errorMessage = toShortError(err);
-      }
-    }
+    await markSent(ref);
 
     await leadRef.set(
-      buildLeadPayload({
-        user,
-        providerIds,
-        notifyStatus,
-        notifiedAt,
-        errorMessage
-      }),
+      {
+        notifyStatus: "sent",
+        notifiedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
       { merge: true }
     );
-
-    const throttleUpdate = {
-      windowStartAt,
-      windowCount
-    };
-    if (lastSentAt) {
-      throttleUpdate.lastSentAt = lastSentAt;
-    }
-    if (notifyStatus === "sent" && notifiedAt) {
-      throttleUpdate.lastSentAt = notifiedAt;
-    }
-
-    await throttleRef.set(throttleUpdate, { merge: true });
   } catch (err) {
-    logger.error("onAuthUserCreate failed", err);
-    try {
-      await leadRef.set(
-        buildLeadPayload({
-          user,
-          providerIds,
-          notifyStatus: "failed",
-          notifiedAt: null,
-          errorMessage: toShortError(err)
-        }),
-        { merge: true }
-      );
-    } catch (writeErr) {
-      logger.error("onAuthUserCreate lead write failed", writeErr);
-    }
+    const msg = (err && err.message) ? err.message.slice(0, 200) : "Error desconocido";
+    console.error("Notify signup failed:", err);
+
+    await leadRef.set(
+      {
+        notifyStatus: "failed",
+        errorMessage: msg,
+      },
+      { merge: true }
+    );
   }
 });
