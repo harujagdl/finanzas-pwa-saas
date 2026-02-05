@@ -1,46 +1,48 @@
-const { onUserCreated } = require("firebase-functions/v2/identity");
+"use strict";
+
+const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const sgMail = require("@sendgrid/mail");
 
-// Inicializar Firebase Admin
 admin.initializeApp();
 
-// Configuración SendGrid desde Firebase config
-const SENDGRID_KEY = process.env.SENDGRID_API_KEY || "";
-const SENDGRID_FROM = process.env.SENDGRID_FROM || "";
-const NOTIFY_TO = process.env.NOTIFY_TO_EMAIL || "";
+// Lee config: sendgrid.key, sendgrid.from, notify.to
+function getConfig() {
+  const cfg = functions.config() || {};
+  const sendgridKey = cfg.sendgrid && cfg.sendgrid.key;
+  const sendgridFrom = cfg.sendgrid && cfg.sendgrid.from;
+  const notifyTo = cfg.notify && cfg.notify.to;
 
-if (SENDGRID_KEY) {
-  sgMail.setApiKey(SENDGRID_KEY);
+  return { sendgridKey, sendgridFrom, notifyTo };
 }
 
-/**
- * 🔔 Notificación cuando un usuario se registra
- * Solo envía email + UID (como pediste)
- */
-exports.notifyUserSignup = onUserCreated(async (event) => {
-  const user = event.data;
+exports.notifyNewUser = functions.auth.user().onCreate(async (user) => {
+  const { sendgridKey, sendgridFrom, notifyTo } = getConfig();
 
-  if (!user || !SENDGRID_KEY || !SENDGRID_FROM || !NOTIFY_TO) {
-    console.log("Configuración incompleta, no se envía correo");
-    return;
+  // Si falta config, no rompas el deploy: solo log
+  if (!sendgridKey || !sendgridFrom || !notifyTo) {
+    console.warn("Missing functions config. Need: sendgrid.key, sendgrid.from, notify.to");
+    return null;
   }
 
-  const msg = {
-    to: NOTIFY_TO,
-    from: SENDGRID_FROM,
-    subject: "Nuevo registro en Finanzas PWA",
-    text: `Nuevo usuario registrado:
+  sgMail.setApiKey(sendgridKey);
 
-UID: ${user.uid}
-Email: ${user.email || "No proporcionado"}
-`,
+  const email = user.email || "(sin email)";
+  const uid = user.uid;
+
+  const msg = {
+    to: notifyTo,
+    from: sendgridFrom,
+    subject: "Nuevo registro en Finanzas PWA",
+    text: `Nuevo usuario registrado:\n\nEmail: ${email}\nUID: ${uid}\n`,
   };
 
   try {
     await sgMail.send(msg);
-    console.log("Correo de notificación enviado");
-  } catch (error) {
-    console.error("Error enviando correo:", error);
+    console.log("Signup notification sent:", { uid, email });
+  } catch (err) {
+    console.error("SendGrid error sending signup notification:", err?.response?.body || err);
   }
+
+  return null;
 });
