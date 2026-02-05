@@ -1,16 +1,11 @@
 name: Deploy Firebase Functions
-
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: functions
 
     steps:
       - name: Checkout
@@ -20,22 +15,43 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
 
       - name: Install functions dependencies
-        run: npm install --omit=dev
+        working-directory: functions
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --omit=dev
+          else
+            npm install --omit=dev
+          fi
 
       - name: Write service account
-        working-directory: .
         run: |
-          printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}" > /tmp/serviceAccount.json
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > /tmp/serviceAccount.json
+          node -e "JSON.parse(require('fs').readFileSync('/tmp/serviceAccount.json','utf8')); console.log('serviceAccount.json OK')"
 
-      - name: Deploy Functions
-        working-directory: .
+      - name: Configure Firebase (functions config)
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          SENDGRID_FROM: ${{ secrets.SENDGRID_FROM }}
-          NOTIFY_TO_EMAIL: ${{ secrets.NOTIFY_TO_EMAIL }}
+          CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: /tmp/serviceAccount.json
+          GOOGLE_CLOUD_PROJECT: finanzas-pwa-saas-pilot
+          GCLOUD_PROJECT: finanzas-pwa-saas-pilot
+        run: |
+          npx firebase-tools@13.35.1 functions:config:set \
+            sendgrid.key="${{ secrets.SENDGRID_API_KEY }}" \
+            sendgrid.from="${{ secrets.SENDGRID_FROM }}" \
+            notify.to="${{ secrets.NOTIFY_TO_EMAIL }}" \
+            --project finanzas-pwa-saas-pilot \
+            --non-interactive
+
+      - name: Deploy Functions
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
+          CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: /tmp/serviceAccount.json
+          GOOGLE_CLOUD_PROJECT: finanzas-pwa-saas-pilot
+          GCLOUD_PROJECT: finanzas-pwa-saas-pilot
         run: |
           npx firebase-tools@13.35.1 deploy \
             --only functions \
