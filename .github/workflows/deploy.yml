@@ -30,6 +30,6 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
         run: |
-          npx firebase-tools deploy --force
+          npx firebase-tools deploy --force \
             --only functions \
             --project finanzas-pwa-saas-pilot
