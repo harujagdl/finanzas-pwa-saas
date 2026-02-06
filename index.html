@@ -1420,7 +1420,10 @@
   ======================= -->
   <div id="view-hist" class="view-section p-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="fw-black m-0">Historial</h4>
+      <div>
+        <h4 class="fw-black m-0">Historial</h4>
+        <div id="hist-msi-summary" class="small text-muted">MSI activos: 0</div>
+      </div>
       <div class="text-end">
         <button class="btn btn-sm btn-outline-secondary btn-disabled" style="border-color:var(--border-color);color:var(--text-muted);" onclick="exportCSV()" type="button" aria-disabled="true">
           <i class="fas fa-file-csv me-1"></i> Descargar CSV (Pro) 🔒
@@ -1451,11 +1454,26 @@
         <input type="text" id="search-input" class="form-control" placeholder="🔍 Buscar..." onkeyup="renderHistory()" />
       </div>
 
+      <div class="col-12">
+        <label class="d-flex align-items-center gap-2 small fw-bold text-muted">
+          <input type="checkbox" id="hist-only-msi" onchange="renderHistory()" />
+          Solo MSI
+        </label>
+      </div>
+
       <div class="col-12 d-grid">
         <button class="btn btn-light" style="border:1px solid var(--border-color);" onclick="clearHistFilters()">
           <i class="fas fa-eraser me-2"></i> Limpiar filtros
         </button>
       </div>
+    </div>
+
+    <div class="card-box mb-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold m-0">Resumen mensual (24 meses)</h6>
+        <small class="text-muted">Incluye MSI mensual</small>
+      </div>
+      <div id="hist-monthly-summary" class="mt-2 text-muted small">Generando resumen...</div>
     </div>
 
     <div id="hist-list"></div>
@@ -1684,6 +1702,7 @@
     </div>
     <div class="nav-container-item">
       <button class="nav-btn" onclick="nav('view-hist')" id="nav-hist"><i class="fas fa-list-ul"></i> Historial</button>
+      <div id="nav-hist-subtitle" class="small text-muted text-center">MSI activos: 0</div>
     </div>
     <div class="nav-container-item">
       <button class="nav-btn" onclick="nav('view-goals')" id="nav-goals">
@@ -3691,14 +3710,18 @@
       return { kind: "pct", value: rounded };
     };
 
+    const getTransactionEffectiveAmount = (transaction = {}) => {
+      const normalized = normalizeMsiTransaction(transaction);
+      return safeNumber(normalized.effectiveAmount);
+    };
+
     const sumExpenses = (expenses = []) => expenses.reduce((acc, exp) => {
-      const amount = safeNumber(exp?.amount);
-      return acc + amount;
+      return acc + getTransactionEffectiveAmount(exp);
     }, 0);
 
     const groupByCategory = (expenses = []) => expenses.reduce((acc, exp) => {
       const key = exp?.categoryId || exp?.category || "uncategorized";
-      acc[key] = safeNumber(acc[key]) + safeNumber(exp?.amount);
+      acc[key] = safeNumber(acc[key]) + getTransactionEffectiveAmount(exp);
       return acc;
     }, {});
 
@@ -3750,7 +3773,7 @@
         const current = groups.get(key) || { key, date: day, items: [], subtotal: 0 };
         current.items.push(exp);
         if (exp?.type === "expense") {
-          current.subtotal += safeNumber(exp?.amount);
+          current.subtotal += getTransactionEffectiveAmount(exp);
         }
         groups.set(key, current);
       });
@@ -5338,11 +5361,13 @@
       const c = document.getElementById('hist-card-filter');
       const g = document.getElementById('hist-cat-filter');
       const s = document.getElementById('search-input');
+      const onlyMsi = document.getElementById('hist-only-msi');
 
       if(m) m.value="all";
       if(c) c.value="all";
       if(g) g.value="all";
       if(s) s.value="";
+      if(onlyMsi) onlyMsi.checked=false;
 
       renderHistory();
     };
@@ -5857,7 +5882,8 @@
           if(!t.category && t.categoryName){
             t.category = t.categoryName;
           }
-          trans.push(t);
+          const normalized = normalizeMsiTransaction(t);
+          trans.push({ ...t, ...normalized });
         });
 
         handlePendingWrites(snap.metadata.hasPendingWrites);
@@ -6792,6 +6818,158 @@
     // =========================
     // ✅ MSI: helpers + render
     // =========================
+    function monthKey(date = new Date()){
+      const d = toDate(date);
+      if(Number.isNaN(d.getTime())) return "1970-01";
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      return `${y}-${m}`;
+    }
+
+    function addMonthsLocal(date = new Date(), months = 0){
+      const base = toDate(date);
+      return new Date(base.getFullYear(), base.getMonth() + months, 1, 12, 0, 0, 0);
+    }
+
+    function clamp(value, min, max){
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function computeMsiMonthly(amountTotal = 0, monthsTotal = 1){
+      const total = safeNumber(amountTotal);
+      const months = Math.max(parseInt(monthsTotal, 10) || 0, 1);
+      return Math.round((total / months) * 100) / 100;
+    }
+
+    function parseMsiMonthsTotal(transaction = {}){
+      const candidate = transaction?.msiMonthsTotal ?? transaction?.msiMonths ?? transaction?.months ?? transaction?.plazoMsi;
+      const parsed = parseInt(candidate, 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    }
+
+    function normalizeMsiTransaction(transaction = {}, referenceDate = new Date()){
+      const normalized = { ...transaction };
+      const isExpense = normalized?.type === "expense";
+      const monthsTotal = parseMsiMonthsTotal(normalized);
+      const hasLegacyMsi = !!(normalized?.isMsi && monthsTotal > 0);
+      const isMSI = !!(normalized?.isMSI === true || normalized?.isMsi === true || hasLegacyMsi) && monthsTotal > 0;
+
+      const amountTotal = safeNumber(
+        normalized?.amountTotal ?? normalized?.totalAmount ?? normalized?.amount ?? 0
+      );
+      const startRaw = normalized?.msiStartDate ?? normalized?.msiStart ?? normalized?.date;
+      const startDate = toDate(startRaw);
+      const startValid = Number.isFinite(startDate.getTime()) && startDate.getTime() > 0;
+      const fallbackDate = toDate(normalized?.date);
+      const msiStartDate = startValid ? startDate : fallbackDate;
+
+      const amountMonthlyRaw = normalized?.amountMonthly ?? normalized?.msiMonthly;
+      const amountMonthly = Number.isFinite(Number(amountMonthlyRaw)) && Number(amountMonthlyRaw) > 0
+        ? safeNumber(amountMonthlyRaw)
+        : computeMsiMonthly(amountTotal, monthsTotal || 1);
+
+      let msiMonthsPaid = parseInt(normalized?.msiMonthsPaid, 10);
+      if(!Number.isFinite(msiMonthsPaid)){
+        const now = toDate(referenceDate);
+        if(monthsTotal <= 0 || !Number.isFinite(msiStartDate.getTime()) || msiStartDate.getTime() <= 0 || msiStartDate > now){
+          msiMonthsPaid = 0;
+        }else{
+          msiMonthsPaid = monthsBetween(msiStartDate, now) + 1;
+        }
+      }
+      msiMonthsPaid = clamp(msiMonthsPaid, 0, Math.max(monthsTotal, 0));
+      const msiMonthsRemaining = clamp((monthsTotal || 0) - msiMonthsPaid, 0, Math.max(monthsTotal, 0));
+
+      const effectiveAmount = (isExpense && isMSI) ? amountMonthly : safeNumber(normalized?.amount);
+      const msiSubtitle = isMSI
+        ? `MSI ${monthsTotal} • Pago ${msiMonthsPaid}/${monthsTotal} • Total ${formatMoney(amountTotal)}`
+        : "";
+      const msiRemainingLabel = isMSI
+        ? (msiMonthsRemaining > 0 ? `Restan ${msiMonthsRemaining}/${monthsTotal}` : `Pago ${msiMonthsPaid}/${monthsTotal}`)
+        : "";
+
+      return {
+        ...normalized,
+        isMSI: isExpense && isMSI,
+        isMsi: isExpense && isMSI,
+        msiMonthsTotal: monthsTotal,
+        msiStartDate,
+        amountTotal,
+        amountMonthly,
+        msiMonthsPaid,
+        msiMonthsRemaining,
+        effectiveAmount,
+        msiSubtitle,
+        msiRemainingLabel
+      };
+    }
+
+    function compute24MonthSummary(expenses = [], now = new Date()){
+      const months = [];
+      const map = new Map();
+      for(let i = 23; i >= 0; i -= 1){
+        const d = addMonthsLocal(now, -i);
+        const key = monthKey(d);
+        const row = { key, label: d.toLocaleDateString("es-MX", { month: "short", year: "numeric" }), total: 0, count: 0 };
+        months.push(row);
+        map.set(key, row);
+      }
+
+      expenses.forEach((t) => {
+        if(t?.type !== "expense") return;
+        const n = normalizeMsiTransaction(t, now);
+        if(n.isMSI){
+          for(let i = 0; i < n.msiMonthsTotal; i += 1){
+            const mk = monthKey(addMonthsLocal(n.msiStartDate, i));
+            const row = map.get(mk);
+            if(!row) continue;
+            row.total += safeNumber(n.amountMonthly);
+            row.count += 1;
+          }
+          return;
+        }
+        const mk = monthKey(n.date);
+        const row = map.get(mk);
+        if(!row) return;
+        row.total += safeNumber(n.amount);
+        row.count += 1;
+      });
+
+      return months;
+    }
+
+    function renderHistoryMonthlySummary(expenses = []){
+      const container = document.getElementById("hist-monthly-summary");
+      if(!container) return;
+      const summary = compute24MonthSummary(expenses, new Date());
+      container.innerHTML = summary.map((row) => `
+        <div class="d-flex justify-content-between border-bottom py-1" style="border-color:var(--border-color)!important;">
+          <span>${row.label}</span>
+          <span class="sensitive-data">${formatMoney(row.total)}</span>
+        </div>
+      `).join("");
+      if(privacy) togglePrivacy();
+    }
+
+    function updateHistoryMsiSummary(expenses = []){
+      const normalized = expenses
+        .filter((t) => t?.type === "expense")
+        .map((t) => normalizeMsiTransaction(t));
+      const active = normalized.filter((t) => t.isMSI && t.msiMonthsRemaining > 0);
+      const count = active.length;
+      const nextLabel = active.length
+        ? (() => {
+            const first = [...active].sort((a,b) => a.msiMonthsRemaining - b.msiMonthsRemaining)[0];
+            const nextPayment = clamp(first.msiMonthsPaid + 1, 1, first.msiMonthsTotal);
+            return ` • Próximo: Pago ${nextPayment}/${first.msiMonthsTotal}`;
+          })()
+        : "";
+      const text = `MSI activos: ${count}${nextLabel}`;
+      const header = document.getElementById("hist-msi-summary");
+      const navSubtitle = document.getElementById("nav-hist-subtitle");
+      if(header) header.textContent = text;
+      if(navSubtitle) navSubtitle.textContent = text;
+    }
     function monthsBetween(a, b){
       // a,b = Date
       const ay=a.getFullYear(), am=a.getMonth();
@@ -6804,25 +6982,18 @@
     }
 
     function getMsiItems(){
-      const now=new Date();
       const items = trans
-        .filter(t => t.type === "expense" && t.isMsi === true && t.msiMonths && t.msiStart)
-        .map(t => {
-          const start = t.msiStart?.toDate ? t.msiStart.toDate() : new Date(t.msiStart);
-          const totalMonths = parseInt(t.msiMonths, 10) || 0;
-          const passed = monthsBetween(start, now);
-          const remaining = Math.max(totalMonths - passed, 0);
-          const monthly = (Number(t.amount||0) / Math.max(totalMonths,1));
-
-          return {
-            ...t,
-            start,
-            totalMonths,
-            passed,
-            remaining,
-            monthly
-          };
-        })
+        .filter(t => t.type === "expense")
+        .map(t => normalizeMsiTransaction(t))
+        .filter(t => t.isMSI && t.msiMonthsTotal > 0)
+        .map(t => ({
+          ...t,
+          start: t.msiStartDate,
+          totalMonths: t.msiMonthsTotal,
+          passed: t.msiMonthsPaid,
+          remaining: t.msiMonthsRemaining,
+          monthly: t.amountMonthly
+        }))
         .sort((a,b)=> b.remaining - a.remaining);
 
       const mode = document.getElementById('msi-filter')?.value || 'active';
@@ -6965,21 +7136,26 @@
         </div>
         <div class="timeline-items">
           ${group.items.map((t) => {
-            const isExp = t.type === "expense";
-            const tagMsi = (isExp && t.isMsi) ? `<span class="badge-status bg-success-light ms-2">MSI</span>` : "";
-            const d = toDate(t.date);
-            const reviewedClass = isTransactionReviewed(t.id) ? "reviewed" : "";
+            const normalized = normalizeMsiTransaction(t);
+            const isExp = normalized.type === "expense";
+            const tagMsi = (isExp && normalized.isMSI) ? `<span class="badge-status bg-success-light ms-2">MSI</span>` : "";
+            const d = toDate(normalized.date);
+            const reviewedClass = isTransactionReviewed(normalized.id) ? "reviewed" : "";
+            const subtitleBase = `${d.toLocaleDateString()} • ${normalized.accountName || normalized.cardName || "Cuenta"} • ${normalized.categoryName || normalized.category || "Sin categoría"}`;
+            const subtitleMSI = normalized.isMSI ? `${normalized.msiSubtitle} • ${normalized.msiRemainingLabel}` : "";
+            const amountToShow = isExp ? normalized.effectiveAmount : safeNumber(normalized.amount);
             return `
-              <div class="list-item swipe-item ${reviewedClass}" data-trans-id="${t.id}">
+              <div class="list-item swipe-item ${reviewedClass}" data-trans-id="${normalized.id}">
                 <div class="d-flex align-items-center">
                   <div class="me-3 text-muted"><i class="fas ${isExp ? "fa-shopping-cart" : "fa-hand-holding-usd"}"></i></div>
                   <div>
-                    <div class="fw-bold">${t.concept}${tagMsi}</div>
-                    <small class="text-muted">${d.toLocaleDateString()} • ${t.accountName || t.cardName || "Cuenta"} • ${t.categoryName || t.category || "Sin categoría"}</small>
+                    <div class="fw-bold">${normalized.concept}${tagMsi}</div>
+                    <small class="text-muted">${subtitleBase}</small>
+                    ${subtitleMSI ? `<small class="text-muted d-block">${subtitleMSI}</small>` : ""}
                   </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                  <div class="fw-bold ${isExp ? "text-danger" : "text-success"} sensitive-data">${isExp ? "-" : "+"}${formatMoney(t.amount)}</div>
+                  <div class="fw-bold ${isExp ? "text-danger" : "text-success"} sensitive-data">${isExp ? "-" : "+"}${formatMoney(amountToShow)}</div>
                   <div class="item-actions">
                     <button class="action-kebab" type="button" onclick="toggleTransMenu('${t.id}', event)" aria-label="Acciones">
                       <i class="fas fa-ellipsis-v"></i>
@@ -7005,6 +7181,7 @@
       const dateFilter = document.getElementById('hist-month-filter')?.value || "all";
       const cardFilter = document.getElementById('hist-card-filter')?.value || "all";
       const catFilter  = document.getElementById('hist-cat-filter')?.value || "all";
+      const onlyMSI = !!document.getElementById('hist-only-msi')?.checked;
 
       if(!list) return;
       list.innerHTML = '';
@@ -7029,16 +7206,23 @@
         let matchesCat = true;
         if (catFilter !== 'all') matchesCat = ((t.categoryName || t.category) === catFilter);
 
-        return matchesText && matchesDate && matchesCard && matchesCat;
+        const normalized = normalizeMsiTransaction(t);
+        const matchesOnlyMsi = !onlyMSI || normalized.isMSI;
+
+        return matchesText && matchesDate && matchesCard && matchesCat && matchesOnlyMsi;
       });
 
       if (filtered.length === 0) {
         list.innerHTML = '<div class="text-center text-muted mt-3">No se encontraron resultados</div>';
+        updateHistoryMsiSummary(scopedTrans);
+        renderHistoryMonthlySummary(scopedTrans);
         return;
       }
 
       const grouped = groupExpensesByDay(filtered);
       list.innerHTML = renderTimeline(grouped);
+      updateHistoryMsiSummary(scopedTrans);
+      renderHistoryMonthlySummary(scopedTrans);
       setupHistoryInteractions();
 
       if (privacy) togglePrivacy();
@@ -7746,8 +7930,13 @@
 
           // MSI
           isMsi: !!isMsi,
+          isMSI: !!isMsi,
           msiMonths: msiMonths,
-          msiStart: msiStart
+          msiMonthsTotal: isMsi ? (msiMonths || 0) : null,
+          msiStart: msiStart,
+          msiStartDate: msiStart,
+          amountTotal: isMsi ? amt : null,
+          amountMonthly: isMsi ? computeMsiMonthly(amt, msiMonths || 1) : null
         };
 
         if(tid){
