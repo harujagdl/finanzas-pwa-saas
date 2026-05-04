@@ -17,6 +17,12 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles/saas/tokens.css" />
+  <link rel="stylesheet" href="./styles/saas/base.css" />
+  <link rel="stylesheet" href="./styles/saas/components.css" />
+  <link rel="stylesheet" href="./styles/saas/dashboard.css" />
+  <link rel="stylesheet" href="./styles/saas/msi.css" />
+  <link rel="stylesheet" href="./styles/saas/utilities.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -1123,9 +1129,13 @@
       </div>
     </section>
 
-    <section id="recent-movements" class="card-box">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold m-0"><i class="fas fa-list me-2"></i>Últimos movimientos</h6>
+    <section id="recent-movements" class="card-box saas-card">
+      <div class="saas-card-header">
+        <div>
+          <p class="saas-card-eyebrow">Resumen</p>
+          <h2 class="saas-card-title"><i class="fas fa-list me-2"></i>Últimos movimientos</h2>
+          <p class="saas-card-subtitle">Últimos cargos y abonos registrados.</p>
+        </div>
         <button class="btn btn-sm btn-outline-secondary" type="button" onclick="nav('view-hist')">
           Ver historial
         </button>
@@ -1164,24 +1174,24 @@
       </div>
     </section>
 
-    <section id="dashboard-summary" class="card-box">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold m-0"><i class="fas fa-gauge-high me-2"></i>Resumen</h6>
+    <section id="dashboard-summary" class="card-box saas-card">
+      <div class="saas-card-header">
+        <div><p class="saas-card-eyebrow">Resumen</p><h2 class="saas-card-title"><i class="fas fa-gauge-high me-2"></i>Resumen</h2><p class="saas-card-subtitle">Estado comparativo de gasto mensual y anual.</p></div>
       </div>
       <div id="dashboard-summary-body" class="text-muted small">Cargando resumen...</div>
     </section>
 
-    <section id="prediction-section" class="card-box">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h6 class="fw-bold m-0"><i class="fas fa-chart-line me-2"></i>Predicción del mes</h6>
+    <section id="prediction-section" class="card-box saas-card">
+      <div class="saas-card-header">
+        <div><p class="saas-card-eyebrow">Resumen</p><h2 class="saas-card-title"><i class="fas fa-chart-line me-2"></i>Predicción del mes</h2><p class="saas-card-subtitle">Estimación basada en tu comportamiento reciente.</p></div>
         <span id="prediction-status" class="badge-status bg-neutral-light">Sin datos</span>
       </div>
       <div id="prediction-body" class="text-muted small">Calculando predicción...</div>
     </section>
 
-    <section id="simulation-section" class="card-box">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h6 class="fw-bold m-0"><i class="fas fa-vial me-2"></i>Simular gasto</h6>
+    <section id="simulation-section" class="card-box saas-card">
+      <div class="saas-card-header">
+        <div><p class="saas-card-eyebrow">Resumen</p><h2 class="saas-card-title"><i class="fas fa-vial me-2"></i>Simular gasto</h2><p class="saas-card-subtitle">Explora el impacto antes de registrar un movimiento.</p></div>
         <span id="simulation-status" class="badge-status bg-warning-light d-none">SIMULADO</span>
       </div>
       <div class="simulation-box">
@@ -1203,9 +1213,9 @@
       </div>
     </section>
 
-    <div id="alerts-section" class="card-box d-none">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold m-0"><i class="fas fa-triangle-exclamation me-2 text-danger"></i>Alertas</h6>
+    <div id="alerts-section" class="card-box saas-card d-none">
+      <div class="saas-card-header">
+        <div><p class="saas-card-eyebrow">Resumen</p><h2 class="saas-card-title"><i class="fas fa-triangle-exclamation me-2 text-danger"></i>Alertas</h2><p class="saas-card-subtitle">Movimientos con riesgo de pago cercano.</p></div>
         <span class="badge-status bg-danger-light">0-2 días</span>
       </div>
       <div id="alerts-list"><small class="text-muted">Sin alertas por ahora.</small></div>
@@ -1229,9 +1239,9 @@
       <div id="monthly-footprint-body" class="text-muted small">Generando resumen...</div>
     </section>
 
-    <div id="payment-monitor-section" class="card-box mb-3">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold m-0"><i class="fas fa-clipboard-check me-2"></i>Monitor de Pagos (Mes Actual)</h6>
+    <div id="payment-monitor-section" class="card-box saas-card mb-3">
+      <div class="saas-card-header">
+        <div><p class="saas-card-eyebrow">Resumen</p><h2 class="saas-card-title"><i class="fas fa-clipboard-check me-2"></i>Monitor de Pagos (Mes Actual)</h2><p class="saas-card-subtitle">Seguimiento de pagos del periodo en curso.</p></div>
         <span class="msi-pill" onclick="nav('view-msi')" style="cursor:pointer;">
           <i class="fas fa-layer-group"></i> MSI
         </span>
@@ -1239,7 +1249,8 @@
       <div id="payment-monitor-list"><small class="text-muted">Cargando pagos...</small></div>
     </div>
 
-    <div id="utilization-section" class="card-box p-3 mb-3">
+    <div id="utilization-section" class="card-box saas-card p-3 mb-3">
+      <div class="saas-card-header"><div><p class="saas-card-eyebrow">Resumen</p><h2 class="saas-card-title">Nivel de Endeudamiento</h2><p class="saas-card-subtitle">Relación de deuda contra línea disponible.</p></div></div>
       <div class="d-flex justify-content-between mb-2">
         <span class="kpi-label">Nivel de Endeudamiento</span>
         <span class="fw-bold small sensitive-data" id="util-text">0%</span>
@@ -1265,9 +1276,9 @@
       </div>
     </div>
 
-    <div id="chart-section" class="card-box">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold m-0">Distribución de Gastos</h6>
+    <div id="chart-section" class="card-box saas-card">
+      <div class="saas-card-header">
+        <div><p class="saas-card-eyebrow">Resumen</p><h2 class="saas-card-title">Distribución de Gastos</h2><p class="saas-card-subtitle">Composición de gastos por categoría en el mes.</p></div>
         <select id="chart-month-filter" class="form-select form-select-sm w-auto py-1" onchange="updateChart()"></select>
       </div>
       <div style="position:relative;height:200px;display:flex;justify-content:center;align-items:center;" id="chart-container">
@@ -1292,8 +1303,8 @@
         ✅ CUENTAS
   ======================= -->
   <div id="view-cards" class="view-section p-3">
-    <div id="cards-placeholder" class="card-box">
-      <h4 class="fw-black mb-2">Cuentas</h4>
+    <div id="cards-placeholder" class="card-box saas-card">
+      <div class="saas-card-header"><div><p class="saas-card-eyebrow">Resumen</p><h2 class="saas-card-title">Cuentas</h2><p class="saas-card-subtitle">Vista preliminar del módulo de cuentas en SaaS.</p></div></div>
       <p class="text-muted small m-0">Próximamente habilitaremos el módulo de cuentas en esta fase SaaS.</p>
     </div>
     <div id="cards-content" class="d-none">
@@ -1520,7 +1531,7 @@
         ✅ MSI (NUEVO)
   ======================= -->
   <div id="view-msi" class="view-section p-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="saas-card-header">
       <div>
         <h4 class="fw-black m-0">MSI</h4>
         <div class="text-muted small">Compras a meses y cuánto falta para que “se liberen”.</div>
@@ -1552,7 +1563,7 @@
         <h6 class="fw-bold m-0">Detalle</h6>
         <span class="text-muted small" id="msi-count">0</span>
       </div>
-      <div id="msi-list"><small class="text-muted">Cargando...</small></div>
+      <div id="msi-list" class="saas-msi-list"><small class="text-muted">Cargando...</small></div>
     </div>
   </div>
 
@@ -4057,6 +4068,8 @@
       const arrowMap = { up: "🔼", down: "🔽", flat: "➖" };
       const monthTrend = getExpenseTrendStyle(metrics.month.delta.delta);
       const yearTrend = getExpenseTrendStyle(metrics.year.delta.delta);
+      const monthHealth = getFinancialHealth(metrics.month.delta.delta);
+      const yearHealth = getFinancialHealth(metrics.year.delta.delta);
 
       const buildCompareLine = (deltaInfo, label) => {
         if (deltaInfo.labelPct === "Sin historial") {
@@ -4072,14 +4085,14 @@
             <div class="dash-title">Este mes</div>
             <div class="dash-total sensitive-data">${formatCurrency(metrics.month.currentTotal)}</div>
             <div class="dash-compare ${monthTrend}">
-              ${buildCompareLine(metrics.month.delta, "mes pasado")}
+              ${buildCompareLine(metrics.month.delta, "mes pasado")} <span class="saas-badge ${monthHealth.status}" title="${monthHealth.reason}">${monthHealth.label}</span>
             </div>
           </div>
           <div class="dash-card">
             <div class="dash-title">Este año</div>
             <div class="dash-total sensitive-data">${formatCurrency(metrics.year.currentTotal)}</div>
             <div class="dash-compare ${yearTrend}">
-              ${buildCompareLine(metrics.year.delta, "año pasado")}
+              ${buildCompareLine(metrics.year.delta, "año pasado")} <span class="saas-badge ${yearHealth.status}" title="${yearHealth.reason}">${yearHealth.label}</span>
             </div>
           </div>
         </div>
@@ -6981,6 +6994,27 @@
       return Math.max(0, diff);
     }
 
+    function getFinancialHealth(delta = 0) {
+      if (!Number.isFinite(delta)) return { status: "neutral", label: "Sin datos", reason: "No hay datos suficientes." };
+      if (delta > 0) return { status: "warning", label: "Atención", reason: "El gasto aumentó contra el periodo anterior." };
+      if (delta < 0) return { status: "success", label: "Sano", reason: "El gasto bajó contra el periodo anterior." };
+      return { status: "neutral", label: "Estable", reason: "El gasto se mantuvo similar." };
+    }
+
+    function getMsiHealth(itemOrActive = 0, overdue = 0) {
+      if (typeof itemOrActive === "object" && itemOrActive) {
+        const remaining = Number(itemOrActive.remaining ?? itemOrActive.msiMonthsRemaining ?? 0);
+        if (remaining === 0) return { status: "success", label: "Liquidada", reason: "Compra MSI liquidada." };
+        if (remaining <= 1) return { status: "danger", label: "Riesgo", reason: "Último pago o pago próximo." };
+        if (remaining <= 2) return { status: "warning", label: "Atención", reason: "Quedan pocos meses por pagar." };
+        return { status: "neutral", label: "Activa", reason: "Compra MSI activa." };
+      }
+      const active = Number(itemOrActive || 0);
+      if (overdue > 0) return { status: "danger", label: "Riesgo", reason: "Hay MSI con presión próxima." };
+      if (active > 0) return { status: "warning", label: "Atención", reason: "Hay compras MSI activas." };
+      return { status: "success", label: "Sano", reason: "No hay MSI activos." };
+    }
+
     function getMsiItems(){
       const items = trans
         .filter(t => t.type === "expense")
@@ -7021,22 +7055,25 @@
         list.innerHTML = '';
         items.forEach(t => {
           const pct = t.totalMonths > 0 ? Math.min((t.passed / t.totalMonths) * 100, 100) : 0;
-          const color = (t.remaining === 0) ? 'success' : (t.remaining <= 2 ? 'warning' : 'primary');
+          const health = getMsiHealth(t);
 
           list.innerHTML += `
-            <div class="mb-3">
-              <div class="d-flex justify-content-between align-items-start">
+            <div class="saas-msi-card ${health.status}" title="${health.reason}">
+              <div class="saas-msi-card-header">
                 <div>
-                  <div class="fw-bold">${t.concept || 'Compra MSI'}</div>
-                  <small class="text-muted">${t.accountName || t.cardName || ''} • Inicio: ${t.start.toLocaleDateString()} • ${t.totalMonths} MSI</small>
+                  <div class="saas-msi-title">${t.concept || 'Compra MSI'}</div>
+                  <div class="saas-msi-meta">${t.accountName || t.cardName || ''} • Inicio: ${t.start.toLocaleDateString()} • ${t.totalMonths} MSI</div>
                 </div>
-                <div class="text-end">
-                  <div class="fw-black sensitive-data">${t.remaining === 0 ? '✅ Liquidada' : `${t.remaining} meses`}</div>
-                  <small class="text-muted sensitive-data">${formatMoney(t.monthly)}/mes</small>
-                </div>
+                <span class="saas-badge ${health.status}">${health.label}</span>
               </div>
-              <div class="progress mt-2" style="height:12px;background-color:var(--bg-body);">
-                <div class="progress-bar bg-${color}" role="progressbar" style="width:${pct}%"></div>
+
+              <div class="saas-msi-row">
+                <span>${t.remaining === 0 ? 'Liquidada' : `${t.remaining} meses restantes`}</span>
+                <strong class="saas-msi-amount sensitive-data">${formatMoney(t.monthly)}/mes</strong>
+              </div>
+
+              <div class="saas-msi-progress">
+                <div class="saas-msi-progress-bar ${health.status}" style="width:${pct}%"></div>
               </div>
             </div>
           `;

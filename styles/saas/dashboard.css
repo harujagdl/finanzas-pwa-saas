@@ -1,0 +1,6 @@
+.saas-kpi-grid { display:grid; gap:.75rem; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); }
+.saas-kpi-card { border:1px solid var(--saas-border); border-radius:14px; padding:.9rem; background:var(--saas-bg-card); }
+.saas-kpi-label { font-size:.75rem; color:var(--saas-text-muted); text-transform:uppercase; letter-spacing:.05em; font-weight:700; }
+.saas-kpi-value { font-size:1.35rem; font-weight:800; }
+.saas-kpi-meta { font-size:.78rem; color:var(--saas-text-muted); }
+.saas-health-row { display:flex; justify-content:space-between; align-items:center; gap:.5rem; }

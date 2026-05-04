@@ -1,0 +1,6 @@
+.saas-stack-sm > * + * { margin-top:.5rem; }
+.saas-stack-md > * + * { margin-top:.85rem; }
+.saas-stack-lg > * + * { margin-top:1.25rem; }
+.saas-muted { color:var(--saas-text-muted)!important; }
+.saas-grid { display:grid; gap:1rem; }
+.saas-grid-auto { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }

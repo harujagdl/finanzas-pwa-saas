@@ -1,0 +1,16 @@
+.saas-msi-list { display:grid; gap:.75rem; }
+.saas-msi-card { border:1px solid var(--saas-border); border-radius:14px; padding:.85rem; background:var(--saas-bg-card); }
+.saas-msi-card.success { border-color:color-mix(in srgb, var(--saas-success) 55%, var(--saas-border)); }
+.saas-msi-card.warning { border-color:color-mix(in srgb, var(--saas-warning) 55%, var(--saas-border)); }
+.saas-msi-card.danger { border-color:color-mix(in srgb, var(--saas-danger) 55%, var(--saas-border)); }
+.saas-msi-card-header,.saas-msi-row { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; }
+.saas-msi-row { margin:.6rem 0; align-items:center; }
+.saas-msi-title { font-weight:700; }
+.saas-msi-meta { font-size:.78rem; color:var(--saas-text-muted); }
+.saas-msi-amount { font-weight:800; }
+.saas-msi-progress { height:10px; border-radius:999px; background:var(--saas-bg-body); overflow:hidden; }
+.saas-msi-progress-bar { height:100%; border-radius:999px; background:var(--saas-primary); }
+.saas-msi-progress-bar.success { background:var(--saas-success); }
+.saas-msi-progress-bar.warning { background:var(--saas-warning); }
+.saas-msi-progress-bar.danger { background:var(--saas-danger); }
+.saas-msi-summary { color:var(--saas-text-muted); font-size:.8rem; }
