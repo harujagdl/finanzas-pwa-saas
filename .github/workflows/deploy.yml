@@ -1,4 +1,4 @@
-name: Deploy Firebase Functions
+name: Deploy Firebase Hosting and Firestore Rules
 
 on:
   push:
@@ -18,18 +18,12 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install functions dependencies
-        working-directory: functions
-        run: npm install --omit=dev
-
       - name: Write service account
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > /tmp/serviceAccount.json
 
-      - name: Deploy Firebase Functions
+      - name: Deploy Firebase Hosting and Firestore Rules
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/serviceAccount.json
         run: |
-          npx firebase-tools deploy --force \
-            --only functions \
-            --project finanzas-pwa-saas-pilot
+          npx firebase-tools deploy --force --only hosting,firestore:rules --project finanzas-pwa-saas-pilot
