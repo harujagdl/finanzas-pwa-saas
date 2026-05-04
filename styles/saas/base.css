@@ -10,4 +10,80 @@ body {
   border: 1px solid var(--saas-border);
   border-radius: var(--saas-radius-card);
   box-shadow: var(--saas-shadow);
+  margin-bottom: 1rem;
+}
+
+.saas-app {
+  display: flex;
+  min-height: 100vh;
+  background: var(--saas-bg-body);
+}
+
+.saas-sidebar {
+  width: 240px;
+  background: var(--saas-bg-card);
+  border-right: 1px solid var(--saas-border);
+  padding: 1.5rem 1rem;
+}
+
+.saas-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.saas-container {
+  width: 100%;
+  max-width: 1100px;
+  padding: 1.5rem;
+}
+
+.saas-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.saas-page-title {
+  margin: 0;
+}
+
+.saas-page-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--saas-text-muted);
+}
+
+@media (max-width: 991.98px) {
+  .saas-sidebar {
+    display: none;
+  }
+
+  .saas-main {
+    display: block;
+  }
+
+  .saas-container {
+    max-width: none;
+    padding: 0;
+  }
+
+  .saas-page-header {
+    display: none;
+  }
+
+  .mobile-app-header {
+    display: flex;
+  }
+}
+
+@media (min-width: 992px) {
+  .mobile-app-header {
+    display: none !important;
+  }
+
+  #view-home.view-section {
+    padding: 0 !important;
+  }
 }

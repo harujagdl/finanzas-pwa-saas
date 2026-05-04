@@ -1047,8 +1047,32 @@
   <!-- =======================
         ✅ INICIO
   ======================= -->
+  <div class="saas-app">
+    <aside class="saas-sidebar">
+      <h6 class="fw-black mb-3">Finanzas</h6>
+      <div class="d-grid gap-2">
+        <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-home')"><i class="fas fa-chart-pie me-2"></i>Inicio</button>
+        <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-cards')"><i class="fas fa-wallet me-2"></i>Cuentas</button>
+        <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-add'); resetForm();"><i class="fas fa-plus me-2"></i>Nuevo movimiento</button>
+        <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-msi')"><i class="fas fa-layer-group me-2"></i>MSI</button>
+        <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-hist')"><i class="fas fa-list-ul me-2"></i>Historial</button>
+        <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-goals')"><span class="me-2">🏆</span>Metas</button>
+        <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-settings')"><i class="fas fa-sliders me-2"></i>Ajustes</button>
+      </div>
+    </aside>
+
+    <main class="saas-main">
+      <div class="saas-container">
+        <div class="saas-page-header">
+          <div>
+            <h1 class="saas-page-title">Inicio</h1>
+            <p class="saas-page-subtitle">Resumen general de tus finanzas.</p>
+          </div>
+          <button class="btn btn-primary" type="button" onclick="nav('view-add'); resetForm();">+ Nuevo movimiento</button>
+        </div>
+
   <div id="view-home" class="view-section active p-3">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 mobile-app-header">
       <div>
         <h5 class="fw-black m-0">Finanzas</h5>
         <div class="text-muted small">Tu control de gastos e ingresos</div>
@@ -1298,7 +1322,6 @@
       <div id="home-card-list"></div>
     </div>
   </div>
-
   <!-- =======================
         ✅ CUENTAS
   ======================= -->
@@ -1670,6 +1693,10 @@
         </div>
       </div>
     </div>
+  </div>
+
+      </div>
+    </main>
   </div>
 
   <button class="quick-fab" type="button" onclick="openQuickAdd()" aria-label="Agregar gasto rápido">
