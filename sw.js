@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1.0.1"; // actualizar en cada deploy
+const CACHE_VERSION = "v1.0.2"; // actualizar en cada deploy
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const STATIC_ASSETS = [
   "/manifest.json",
