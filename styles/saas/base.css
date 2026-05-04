@@ -32,6 +32,14 @@ body {
   justify-content: center;
 }
 
+.saas-sidebar .btn {
+  width: 100%;
+  justify-content: flex-start;
+  border-radius: 14px;
+  padding: .75rem .9rem;
+  font-weight: 700;
+}
+
 .saas-container {
   width: 100%;
   max-width: 1100px;
@@ -79,6 +87,45 @@ body {
 }
 
 @media (min-width: 992px) {
+  #app-root {
+    min-height: 100vh;
+  }
+
+  .saas-app {
+    display: flex !important;
+    align-items: stretch;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .saas-sidebar {
+    display: block !important;
+    flex: 0 0 240px;
+    width: 240px !important;
+    max-width: 240px;
+    min-height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  .saas-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex !important;
+    justify-content: center;
+  }
+
+  .saas-container {
+    max-width: 1100px;
+    width: 100%;
+    padding: 1.5rem 2rem;
+  }
+
+  .bottom-nav,
+  .quick-fab {
+    display: none !important;
+  }
+
   .mobile-app-header {
     display: none !important;
   }
