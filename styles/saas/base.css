@@ -196,7 +196,7 @@ body {
   }
 
   .mobile-app-header {
-    display: flex;
+    display: block;
   }
 }
 
@@ -257,5 +257,130 @@ body {
 
   #view-home.view-section {
     padding: 0 !important;
+  }
+}
+
+.mobile-app-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.mobile-app-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: .75rem;
+}
+
+@media (max-width: 575.98px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  #app-root,
+  .saas-app,
+  .saas-main,
+  .saas-container,
+  .view-section {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .view-section {
+    padding: 1rem !important;
+  }
+
+  .mobile-app-header {
+    display: block !important;
+  }
+
+  .mobile-app-header > .d-flex,
+  .mobile-app-header {
+    max-width: 100%;
+  }
+
+  .mobile-app-header {
+    gap: .75rem;
+  }
+
+  .mobile-app-header > .d-flex:last-child,
+  .mobile-app-header .d-flex.gap-2 {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: .5rem !important;
+    margin-top: .75rem;
+  }
+
+  .owner-select {
+    max-width: 150px;
+    min-width: 0;
+  }
+
+  .btn.rounded-circle {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px;
+  }
+
+  .smart-banner,
+  .card-box,
+  .saas-card {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .smart-banner {
+    padding: 1.35rem;
+    border-radius: 22px;
+  }
+
+  .smart-banner h2 {
+    font-size: 1.9rem;
+  }
+
+  .smart-banner p {
+    overflow-wrap: anywhere;
+  }
+
+  .card-box {
+    padding: 1rem;
+    border-radius: 22px;
+  }
+
+  .btn,
+  .form-control,
+  .form-select {
+    max-width: 100%;
+  }
+
+  .bottom-nav {
+    height: 76px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .bottom-nav .nav-item,
+  .bottom-nav button,
+  .bottom-nav a {
+    min-width: 0;
+    font-size: .72rem;
+  }
+
+  .quick-fab {
+    right: 1rem;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  #recent-movements,
+  #placeholder-alerts,
+  #placeholder-goals {
+    display: none;
   }
 }

@@ -854,7 +854,7 @@
                 <li>Metas financieras</li>
               </ul>
               <div class="d-grid mt-3">
-                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalPro">
+                <button class="btn btn-primary" type="button" onclick="showProComingSoon()">
                   Quiero Pro
                 </button>
               </div>
@@ -1098,19 +1098,21 @@
         </div>
 
   <div id="view-home" class="view-section active p-3">
-    <div class="d-flex justify-content-between align-items-center mb-4 mobile-app-header">
-      <div>
-        <h5 class="fw-black m-0">Finanzas</h5>
-        <div class="text-muted small">Tu control de gastos e ingresos</div>
-        <div class="text-muted small mt-1 d-none" id="auth-greeting"></div>
-        <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
-          <div id="netBadge" class="net-badge offline">Offline</div>
-          <span id="sync-status" class="sync-pill synced">Sincronizado</span>
-          <small id="sync-time" class="text-muted small d-none">Última sincronización: --</small>
+    <div class="mobile-app-header mb-4">
+      <div class="mobile-app-header-top">
+        <div>
+          <h5 class="fw-black m-0">Finanzas</h5>
+          <div class="text-muted small">Tu control de gastos e ingresos</div>
+          <div class="text-muted small mt-1 d-none" id="auth-greeting"></div>
+          <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+            <div id="netBadge" class="net-badge offline">Offline</div>
+            <span id="sync-status" class="sync-pill synced">Sincronizado</span>
+            <small id="sync-time" class="text-muted small d-none">Última sincronización: --</small>
+          </div>
         </div>
       </div>
 
-      <div class="d-flex gap-2 align-items-center">
+      <div class="mobile-app-actions">
         <select id="owner-select" class="form-select form-select-sm owner-select" title="Espacio de trabajo"></select>
 
         <!-- 🔔 Push (por ahora solo placeholder) -->
@@ -1487,10 +1489,10 @@
         <div id="hist-msi-summary" class="small text-muted">MSI activos: 0</div>
       </div>
       <div class="text-end">
-        <button class="btn btn-sm btn-outline-secondary btn-disabled" style="border-color:var(--border-color);color:var(--text-muted);" onclick="exportCSV()" type="button" aria-disabled="true">
+        <button class="btn btn-sm btn-outline-secondary btn-disabled" style="border-color:var(--border-color);color:var(--text-muted);" onclick="showProComingSoon()" type="button" aria-disabled="true">
           <i class="fas fa-file-csv me-1"></i> Descargar CSV (Pro) 🔒
         </button>
-        <div class="small text-muted mt-1">Adquiere Pro para descargar CSV</div>
+        <button class="small text-muted mt-1 border-0 bg-transparent p-0" type="button" onclick="showProComingSoon()">Adquiere Pro para descargar CSV</button>
       </div>
     </div>
 
@@ -1927,8 +1929,8 @@
         <div class="modal-body">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
-              <h5 class="fw-black mb-1" id="modalProLabel">Función Pro</h5>
-              <p class="text-muted small mb-0">Adquiere Pro para descargar CSV y habilitar reportes avanzados.</p>
+              <h5 class="fw-black mb-1" id="modalProLabel">Versión Pro próximamente 🚀</h5>
+              <p class="text-muted small mb-0">Estamos preparando reportes avanzados, exportación CSV, alertas inteligentes y más herramientas para controlar mejor tu dinero.</p>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
@@ -8242,16 +8244,28 @@
     let proModal = null;
     function openProModal(){
       const modalEl = document.getElementById("modalPro");
-      if(!modalEl || !window.bootstrap) return;
+      if(!modalEl || !window.bootstrap) return false;
       if(!proModal){
         proModal = new bootstrap.Modal(modalEl);
       }
       proModal.show();
+      return true;
     }
+
+    function showProComingSoon(){
+      const message = "Versión Pro próximamente 🚀\nEstamos preparando reportes avanzados, exportación CSV, alertas inteligentes y más herramientas para controlar mejor tu dinero.";
+      if(openProModal()) return;
+      if(typeof showToast === "function"){
+        showToast(message, { tone: "info", duration: 5200 });
+        return;
+      }
+      alert(message);
+    }
+    window.showProComingSoon = showProComingSoon;
 
     window.exportCSV=()=>{
       if(window.PILOT_DISABLE_CSV){
-        openProModal();
+        showProComingSoon();
         return;
       }
       let csv="Fecha,Concepto,Categoria,Monto,Tipo,Cuenta,Persona,Scope,MSI,MSI_Meses,MSI_Inicio\n";
