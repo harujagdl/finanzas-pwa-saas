@@ -751,6 +751,16 @@
     }
     .goal-move-controls{display:none; gap:6px;}
     body.ios-fallback .goal-move-controls{display:inline-flex;}
+
+    .plan-badge{
+      display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+      font-size:.72rem; font-weight:900; letter-spacing:.04em; text-transform:uppercase; border:1px solid var(--border-color);
+    }
+    .plan-badge.free{background:rgba(107,114,128,.12); color:var(--text-muted);}
+    .plan-badge.pro{background:rgba(37,99,235,.12); color:var(--primary); border-color:rgba(37,99,235,.25);}
+    .plan-badge.couple{background:rgba(236,72,153,.12); color:#db2777; border-color:rgba(236,72,153,.25);}
+    .pro-locked{opacity:.68;}
+    .pro-feature-note{font-size:.75rem; color:var(--text-muted);}
     @media (prefers-reduced-motion: reduce){
       .fade-in, .toast-message{transition:none;}
       .btn-loading .spinner, .skeleton::after{animation:none;}
@@ -1146,6 +1156,7 @@
               <span class="sync-pill synced">ONLINE</span>
               <span class="sync-pill synced">SINCRONIZADO</span>
               <span class="text-muted small">Última sincronización: <span id="saas-sync-time-clone">--</span></span>
+              <span class="plan-badge free" data-plan-badge>Free</span>
             </div>
           </div>
           <div class="saas-control-actions">
@@ -1166,6 +1177,7 @@
           <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
             <div id="netBadge" class="net-badge offline">Offline</div>
             <span id="sync-status" class="sync-pill synced">Sincronizado</span>
+            <span class="plan-badge free" data-plan-badge>Free</span>
             <small id="sync-time" class="text-muted small d-none">Última sincronización: --</small>
           </div>
         </div>
@@ -1548,10 +1560,10 @@
         <div id="hist-msi-summary" class="small text-muted">MSI activos: 0</div>
       </div>
       <div class="text-end">
-        <button class="btn btn-sm btn-outline-secondary btn-disabled" style="border-color:var(--border-color);color:var(--text-muted);" onclick="showProComingSoon()" type="button" aria-disabled="true">
-          <i class="fas fa-file-csv me-1"></i> Descargar CSV (Pro) 🔒
+        <button id="export-csv-btn" class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="exportCSV()" type="button" data-pro-feature="csvExport">
+          <i class="fas fa-file-csv me-1"></i> <span data-csv-label>Descargar CSV (Pro) 🔒</span>
         </button>
-        <button class="small text-muted mt-1 border-0 bg-transparent p-0" type="button" onclick="showProComingSoon()">Adquiere Pro para descargar CSV</button>
+        <button class="small text-muted mt-1 border-0 bg-transparent p-0" type="button" onclick="showProComingSoon('csvExport')" data-pro-message="csvExport">Adquiere Pro para descargar CSV</button>
       </div>
     </div>
 
@@ -1691,6 +1703,22 @@
       <button class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="nav('view-home')">
         <i class="fas fa-arrow-left me-1"></i> Volver
       </button>
+    </div>
+
+
+    <div class="card-box">
+      <div class="d-flex justify-content-between align-items-start gap-3">
+        <div>
+          <h6 class="fw-bold m-0">Plan</h6>
+          <div class="text-muted small" id="settings-plan-description">Tu workspace está en el plan Free.</div>
+          <div class="pro-feature-note mt-1" data-pro-message="csvExport">Disponible en Pro: exportación CSV.</div>
+        </div>
+        <span class="plan-badge free" data-plan-badge>Free</span>
+      </div>
+      <div class="d-grid gap-2 mt-3">
+        <button class="btn btn-outline-primary" type="button" onclick="showRedeemCodeModal()">Tengo un código Pro</button>
+        <button class="btn btn-outline-secondary" type="button" onclick="showProComingSoon('coupleAccess')">Modo pareja (Couple) 🔒</button>
+      </div>
     </div>
 
     <div class="card-box">
@@ -1994,15 +2022,42 @@
         <div class="modal-body">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
-              <h5 class="fw-black mb-1" id="modalProLabel">Versión Pro próximamente 🚀</h5>
-              <p class="text-muted small mb-0">Estamos preparando reportes avanzados, exportación CSV, alertas inteligentes y más herramientas para controlar mejor tu dinero.</p>
+              <h5 class="fw-black mb-1" id="modalProLabel">PocketFlow Pro 🚀</h5>
+              <p class="text-muted small mb-0" id="modalProMessage">Exportación CSV está disponible en PocketFlow Pro.</p>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
           <div class="d-flex gap-2 mt-4">
-            <button class="btn btn-primary flex-fill" type="button" data-bs-dismiss="modal">Quiero Pro</button>
+            <button class="btn btn-primary flex-fill" type="button" id="pro-redeem-cta">Tengo un código Pro</button>
             <button class="btn btn-light flex-fill" type="button" data-bs-dismiss="modal">Cerrar</button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalRedeemCode" tabindex="-1" aria-labelledby="modalRedeemCodeLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content card-box border-0">
+        <div class="modal-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h5 class="fw-black mb-1" id="modalRedeemCodeLabel">Redimir código Pro</h5>
+              <p class="text-muted small mb-0">Ingresa tu código para activar Pro o Couple en tu workspace.</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <form id="redeem-code-form">
+            <div class="mb-3">
+              <label class="small text-muted fw-bold" for="redeem-code-input">Código</label>
+              <input type="text" class="form-control admin-code text-uppercase" id="redeem-code-input" placeholder="PRO-ABC123" autocomplete="off" required />
+              <div class="small text-danger mt-2 d-none" id="redeem-code-error"></div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary flex-fill" type="submit" id="redeem-code-submit">Aplicar código</button>
+              <button class="btn btn-light flex-fill" type="button" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -2114,6 +2169,13 @@
                 <button class="btn btn-primary w-100" type="submit" id="admin-save-promo-btn">Crear promo</button>
               </div>
             </form>
+            <div class="mt-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold m-0">Códigos recientes</h6>
+                <button class="btn btn-sm btn-outline-secondary" type="button" id="admin-refresh-promos-btn">Actualizar</button>
+              </div>
+              <div id="admin-promos-list"><small class="text-muted">Sin cargar.</small></div>
+            </div>
           </div>
 
           <div class="admin-card admin-card-span">
@@ -2154,6 +2216,7 @@
       getFirestore,
       serverTimestamp, increment, limit
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-functions.js";
 
     function showBlockingInitError(message){
       const loaderEl = document.getElementById("loader");
@@ -2197,6 +2260,7 @@
 
     const { app: firebaseApp, db } = initFirebase();
     const auth = firebaseApp ? getAuth(firebaseApp) : null;
+    const cloudFunctions = firebaseApp ? getFunctions(firebaseApp) : null;
     const ADMIN_EMAILS = (window.ADMIN_EMAILS || ["yair.tenorio.silva@gmail.com"])
       .map((email) => String(email).trim().toLowerCase())
       .filter(Boolean);
@@ -2292,7 +2356,14 @@
     const adminPromoNotesInput = document.getElementById("admin-promo-notes");
     const adminRandomCodeBtn = document.getElementById("admin-random-code-btn");
     const adminRefreshLogsBtn = document.getElementById("admin-refresh-logs-btn");
+    const adminRefreshPromosBtn = document.getElementById("admin-refresh-promos-btn");
     const adminLogsList = document.getElementById("admin-logs-list");
+    const adminPromosList = document.getElementById("admin-promos-list");
+    const redeemCodeForm = document.getElementById("redeem-code-form");
+    const redeemCodeInput = document.getElementById("redeem-code-input");
+    const redeemCodeError = document.getElementById("redeem-code-error");
+    const redeemCodeSubmit = document.getElementById("redeem-code-submit");
+    const proRedeemCta = document.getElementById("pro-redeem-cta");
     const onboardingOverlay = document.getElementById("onboarding-overlay");
     const onboardingStepLabel = document.getElementById("onboarding-step-label");
     const onboardingProgress = document.getElementById("onboarding-progress");
@@ -2329,8 +2400,208 @@
       user: null,
       mode: "landing"
     };
-    window.PILOT_DISABLE_CSV = true;
+    window.PILOT_DISABLE_CSV = false;
     const APP_VERSION = "piloto";
+
+    const PLAN_FEATURES = {
+      free: {
+        csvExport: false,
+        advancedReports: false,
+        smartAlerts: false,
+        unlimitedGoals: false,
+        coupleAccess: false,
+        maxAccounts: 2,
+        maxGoals: 1,
+        maxMonthlyTransactions: 100
+      },
+      pro: {
+        csvExport: true,
+        advancedReports: true,
+        smartAlerts: true,
+        unlimitedGoals: true,
+        coupleAccess: false,
+        maxAccounts: Infinity,
+        maxGoals: Infinity,
+        maxMonthlyTransactions: Infinity
+      },
+      couple: {
+        csvExport: true,
+        advancedReports: true,
+        smartAlerts: true,
+        unlimitedGoals: true,
+        coupleAccess: true,
+        maxAccounts: Infinity,
+        maxGoals: Infinity,
+        maxMonthlyTransactions: Infinity,
+        maxMembers: 2
+      }
+    };
+
+    const PLAN_LABELS = { free: "Free", pro: "Pro", couple: "Couple" };
+    const VALID_PLAN_STATUSES = ["active", "trialing", "expired", "canceled"];
+    let activeWorkspace = null;
+    let activePlan = {
+      plan: "free",
+      status: "active",
+      features: { ...PLAN_FEATURES.free }
+    };
+
+    function normalizePlanName(plan){
+      return ["free", "pro", "couple"].includes(plan) ? plan : "free";
+    }
+
+    function toPlanDate(value){
+      if(!value) return null;
+      if(typeof value.toDate === "function") return value.toDate();
+      if(value instanceof Date) return value;
+      if(typeof value === "number") return new Date(value);
+      if(typeof value === "string"){
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date;
+      }
+      return null;
+    }
+
+    function isPlanExpired(planData){
+      const expiresAt = toPlanDate(planData?.planExpiresAt || planData?.expiresAt);
+      return Boolean(expiresAt && expiresAt.getTime() < Date.now());
+    }
+
+    function normalizePlanData(data = {}){
+      let plan = normalizePlanName(data.plan);
+      let status = VALID_PLAN_STATUSES.includes(data.status) ? data.status : "active";
+      if(status === "expired" || status === "canceled" || isPlanExpired(data)){
+        plan = "free";
+        status = status === "canceled" ? "canceled" : "expired";
+      }
+      const baseFeatures = PLAN_FEATURES[plan] || PLAN_FEATURES.free;
+      return {
+        ...data,
+        plan,
+        status,
+        planExpiresAt: data.planExpiresAt || null,
+        features: { ...baseFeatures }
+      };
+    }
+
+    function getCurrentPlan(){
+      return normalizePlanName(activePlan?.plan || window.userProfile?.plan || "free");
+    }
+
+    function isPro(){
+      return getCurrentPlan() === "pro";
+    }
+
+    function isCouple(){
+      return getCurrentPlan() === "couple";
+    }
+
+    function hasFeature(featureKey){
+      const plan = getCurrentPlan();
+      return Boolean(PLAN_FEATURES[plan]?.[featureKey]);
+    }
+
+    async function ensureDefaultWorkspaceForUser(user, profileData = {}){
+      if(!db || !user?.uid) return profileData || null;
+      if(profileData?.activeWorkspaceId) return profileData;
+      const workspaceRef = doc(collection(db, "workspaces"));
+      const displayName = user.displayName || profileData.displayName || profileData.profile?.displayName || "";
+      const email = user.email || profileData.email || "";
+      const workspaceName = displayName || email || "Mi PocketFlow";
+      await setDoc(workspaceRef, {
+        name: workspaceName,
+        ownerUid: user.uid,
+        memberUids: [user.uid],
+        plan: "free",
+        status: "active",
+        planExpiresAt: null,
+        maxMembers: 1,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      const workspaceIds = Array.isArray(profileData.workspaceIds) ? [...new Set([...profileData.workspaceIds, workspaceRef.id])] : [workspaceRef.id];
+      const patch = {
+        activeWorkspaceId: workspaceRef.id,
+        workspaceIds,
+        updatedAt: serverTimestamp()
+      };
+      await setDoc(doc(db, "users", user.uid), patch, { merge: true });
+      return { ...profileData, ...patch };
+    }
+
+    async function loadActiveWorkspaceAndPlan(){
+      if(!db || !currentUser?.uid){
+        activeWorkspace = null;
+        activePlan = normalizePlanData({ plan: "free", status: "active" });
+        updatePlanUi();
+        return activePlan;
+      }
+      const profileSnap = await getDoc(doc(db, "users", currentUser.uid));
+      let profile = profileSnap.exists() ? profileSnap.data() : {};
+      profile = await ensureDefaultWorkspaceForUser(currentUser, profile);
+      window.userProfile = profile;
+      let planSource = profile?.plan ? { plan: profile.plan, status: profile.planStatus || "active", planExpiresAt: profile.planExpiresAt || null } : { plan: "free", status: "active" };
+      activeWorkspace = null;
+      if(profile?.activeWorkspaceId){
+        const workspaceSnap = await getDoc(doc(db, "workspaces", profile.activeWorkspaceId));
+        if(workspaceSnap.exists()){
+          activeWorkspace = { id: workspaceSnap.id, ...workspaceSnap.data() };
+          planSource = activeWorkspace;
+          if(isPlanExpired(activeWorkspace) && activeWorkspace.plan !== "free"){
+            try{
+              await setDoc(doc(db, "workspaces", activeWorkspace.id), {
+                plan: "free",
+                status: "expired",
+                updatedAt: serverTimestamp()
+              }, { merge: true });
+              activeWorkspace = { ...activeWorkspace, plan: "free", status: "expired" };
+              planSource = activeWorkspace;
+            }catch(err){
+              console.warn("No se pudo marcar el plan expirado:", err?.message || err);
+            }
+          }
+        }
+      }
+      activePlan = normalizePlanData(planSource);
+      updatePlanUi();
+      return activePlan;
+    }
+
+    function updatePlanUi(){
+      const plan = getCurrentPlan();
+      const label = PLAN_LABELS[plan] || "Free";
+      document.querySelectorAll("[data-plan-badge]").forEach((badge)=>{
+        badge.textContent = label;
+        badge.classList.remove("free", "pro", "couple");
+        badge.classList.add(plan);
+      });
+      const csvAllowed = hasFeature("csvExport");
+      document.querySelectorAll("[data-csv-label]").forEach((el)=>{
+        el.textContent = csvAllowed ? "Descargar CSV" : "Descargar CSV (Pro) 🔒";
+      });
+      document.querySelectorAll("[data-pro-feature='csvExport']").forEach((el)=>{
+        el.classList.toggle("pro-locked", !csvAllowed);
+        el.classList.toggle("btn-disabled", !csvAllowed);
+        el.setAttribute("aria-disabled", csvAllowed ? "false" : "true");
+      });
+      document.querySelectorAll("[data-pro-message='csvExport']").forEach((el)=>{
+        el.classList.toggle("d-none", csvAllowed);
+      });
+      const settingsDescription = document.getElementById("settings-plan-description");
+      if(settingsDescription){
+        const expiresAt = toPlanDate(activePlan?.planExpiresAt);
+        const expiration = expiresAt ? ` · Expira ${expiresAt.toLocaleDateString("es-MX")}` : "";
+        settingsDescription.textContent = `Tu workspace está en el plan ${label}${expiration}.`;
+      }
+    }
+
+    window.getCurrentPlan = getCurrentPlan;
+    window.isPro = isPro;
+    window.isCouple = isCouple;
+    window.hasFeature = hasFeature;
+    window.isPlanExpired = isPlanExpired;
+    window.normalizePlanData = normalizePlanData;
+
 
     if(googleAuthBtn){
       googleAuthBtn.dataset.labelHtml = `<i class="fab fa-google me-2"></i> Continuar con Google`;
@@ -2578,10 +2849,11 @@
       const profileRef = doc(db, "users", user.uid);
       const existing = await getDoc(profileRef);
       if(existing.exists()){
-        return existing.data();
+        const profile = existing.data();
+        return ensureDefaultWorkspaceForUser(user, profile);
       }
       const displayName = user.displayName || "";
-      const profile = {
+      let profile = {
         email: user.email || "",
         displayName,
         createdAt: serverTimestamp(),
@@ -2595,6 +2867,7 @@
         provider: user.providerData?.[0]?.providerId ?? "password"
       };
       await setDoc(profileRef, profile, { merge: true });
+      profile = await ensureDefaultWorkspaceForUser(user, profile);
       return profile;
     }
 
@@ -3311,6 +3584,7 @@
       APP_STATE.mode = "admin";
       const isAdmin = updateAdminAccessUi();
       if(isAdmin && !adminLogsLoaded) loadAdminLogs();
+      if(isAdmin) loadAdminPromos();
       if(window.location.hash !== "#admin" && !window.location.pathname.endsWith("/admin")){
         window.history.replaceState(null, "", "#admin");
       }
@@ -3487,9 +3761,15 @@
             <div>
               <div class="fw-bold">${escapeHtml(workspace.name || workspace.id)}</div>
               <div class="text-muted small">Workspace ID: <span class="admin-code">${escapeHtml(workspace.id)}</span></div>
-              <div class="text-muted small">Plan actual: <strong>${escapeHtml(plan)}</strong> · Expira: ${escapeHtml(formatAdminDate(workspace.planExpiresAt || workspace.expiresAt))}</div>
+              <div class="text-muted small">Plan actual: <strong>${escapeHtml(plan)}</strong> · Estado: ${escapeHtml(workspace.status || "active")} · Max miembros: ${escapeHtml(workspace.maxMembers || (plan === "couple" ? 2 : 1))}</div>
+              <div class="text-muted small">Expira: ${escapeHtml(formatAdminDate(workspace.planExpiresAt || workspace.expiresAt))}</div>
             </div>
             <span class="badge-status bg-warning-light">${escapeHtml(plan)}</span>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-sm btn-outline-primary" type="button" data-admin-quick-plan="pro" data-admin-quick-days="30">Activar Pro 30 días</button>
+            <button class="btn btn-sm btn-outline-primary" type="button" data-admin-quick-plan="couple" data-admin-quick-days="30">Activar Couple 30 días</button>
+            <button class="btn btn-sm btn-outline-danger" type="button" data-admin-quick-plan="free" data-admin-quick-days="0">Quitar Pro</button>
           </div>
           <div class="row g-2 align-items-end">
             <div class="col-6 col-md-4">
@@ -3521,7 +3801,9 @@
       try{
         const payload = {
           plan,
-          planExpiresAt: timestampFromDateInput(expirationValue),
+          status: plan === "free" ? "active" : "active",
+          planExpiresAt: plan === "free" ? null : timestampFromDateInput(expirationValue),
+          maxMembers: plan === "couple" ? 2 : 1,
           updatedAt: serverTimestamp(),
           updatedBy: currentUser?.uid || null,
           updatedByEmail: currentUser?.email || null
@@ -3584,12 +3866,39 @@
         adminPromoForm?.reset();
         if(adminPromoMaxInput) adminPromoMaxInput.value = "1";
         if(adminPromoPlanInput) adminPromoPlanInput.value = "pro";
+        loadAdminPromos();
         loadAdminLogs();
         showToast(`Promo ${code} creada.`, { tone: "success" });
       }catch(err){
         showToast(getFirestoreErrorMessage(err), { tone: "warning", duration: 3200 });
       }finally{
         if(saveBtn) saveBtn.disabled = false;
+      }
+    }
+
+
+    async function loadAdminPromos(){
+      if(!db || !isCurrentUserAdmin() || !adminPromosList) return;
+      adminPromosList.innerHTML = `<small class="text-muted">Cargando promos...</small>`;
+      try{
+        const snap = await getDocs(query(collection(db, "promoCodes"), orderBy("createdAt", "desc"), limit(10)));
+        const promos = [];
+        snap.forEach((docSnap)=>promos.push({ id: docSnap.id, ...docSnap.data() }));
+        if(!promos.length){
+          adminPromosList.innerHTML = `<small class="text-muted">Aún no hay códigos.</small>`;
+          return;
+        }
+        adminPromosList.innerHTML = promos.map((promo)=>`
+          <div class="admin-log-item">
+            <div class="d-flex justify-content-between gap-2">
+              <div><span class="admin-code">${escapeHtml(promo.id)}</span> · ${escapeHtml(promo.plan || "free")}</div>
+              <span class="badge-status bg-warning-light">${escapeHtml(promo.status || "active")}</span>
+            </div>
+            <div class="text-muted small">Redimidos: ${Number(promo.redeemedCount || 0)} / ${Number(promo.maxRedemptions || 1)} · Días: ${promo.planDays || "manual"} · Expira: ${escapeHtml(formatAdminDate(promo.expiresAt))}</div>
+          </div>
+        `).join("");
+      }catch(err){
+        adminPromosList.innerHTML = `<small class="text-danger">${escapeHtml(getFirestoreErrorMessage(err))}</small>`;
       }
     }
 
@@ -3854,6 +4163,26 @@
     }
     if(adminWorkspacesList){
       adminWorkspacesList.addEventListener("click", (event)=>{
+        const quickButton = event.target.closest("[data-admin-quick-plan]");
+        if(quickButton){
+          const item = quickButton.closest("[data-admin-workspace]");
+          const planInput = item?.querySelector("[data-admin-plan]");
+          const expirationInput = item?.querySelector("[data-admin-expiration]");
+          if(planInput) planInput.value = quickButton.dataset.adminQuickPlan || "free";
+          const days = Number(quickButton.dataset.adminQuickDays || 0);
+          if(expirationInput){
+            if(days > 0){
+              const date = new Date();
+              date.setDate(date.getDate() + days);
+              expirationInput.value = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+            }else{
+              expirationInput.value = "";
+            }
+          }
+          const saveButton = item?.querySelector("[data-admin-save-workspace]");
+          if(saveButton) saveWorkspacePlan(saveButton);
+          return;
+        }
         const button = event.target.closest("[data-admin-save-workspace]");
         if(button) saveWorkspacePlan(button);
       });
@@ -3863,6 +4192,9 @@
     }
     if(adminPromoForm){
       adminPromoForm.addEventListener("submit", savePromoCode);
+    }
+    if(adminRefreshPromosBtn){
+      adminRefreshPromosBtn.addEventListener("click", loadAdminPromos);
     }
     if(adminRefreshLogsBtn){
       adminRefreshLogsBtn.addEventListener("click", loadAdminLogs);
@@ -3889,6 +4221,8 @@
       }
       startLoader();
       try{
+        window.userProfile = await ensureUserProfile(currentUser);
+        await loadActiveWorkspaceAndPlan();
         await ensureAccountsFromCards();
         const settings = await ensureAppSettings();
         const [ownerSnap, accountSnap, categorySnap] = await Promise.all([
@@ -8882,6 +9216,14 @@
     };
 
     let proModal = null;
+    let redeemCodeModal = null;
+    const PRO_FEATURE_MESSAGES = {
+      csvExport: "Exportación CSV está disponible en PocketFlow Pro.",
+      smartAlerts: "Las alertas inteligentes estarán disponibles en PocketFlow Pro.",
+      coupleAccess: "El modo pareja permite compartir un workspace con otra persona.",
+      default: "PocketFlow Pro desbloquea exportación CSV, reportes avanzados, alertas inteligentes y más herramientas."
+    };
+
     function openProModal(){
       const modalEl = document.getElementById("modalPro");
       if(!modalEl || !window.bootstrap) return false;
@@ -8892,8 +9234,30 @@
       return true;
     }
 
-    function showProComingSoon(){
-      const message = "Versión Pro próximamente 🚀\nEstamos preparando reportes avanzados, exportación CSV, alertas inteligentes y más herramientas para controlar mejor tu dinero.";
+    function openRedeemCodeModal(){
+      const modalEl = document.getElementById("modalRedeemCode");
+      if(!modalEl || !window.bootstrap) return false;
+      if(!redeemCodeModal){
+        redeemCodeModal = new bootstrap.Modal(modalEl);
+      }
+      if(redeemCodeError){
+        redeemCodeError.textContent = "";
+        redeemCodeError.classList.add("d-none");
+      }
+      redeemCodeModal.show();
+      setTimeout(()=>redeemCodeInput?.focus(), 250);
+      return true;
+    }
+
+    function showRedeemCodeModal(){
+      if(openRedeemCodeModal()) return;
+      showToast("Abre el formulario de código desde un navegador compatible.", { tone: "info", duration: 3200 });
+    }
+
+    function showProComingSoon(featureKey = "default"){
+      const message = PRO_FEATURE_MESSAGES[featureKey] || PRO_FEATURE_MESSAGES.default;
+      const modalMessage = document.getElementById("modalProMessage");
+      if(modalMessage) modalMessage.textContent = message;
       if(openProModal()) return;
       if(typeof showToast === "function"){
         showToast(message, { tone: "info", duration: 5200 });
@@ -8901,11 +9265,64 @@
       }
       alert(message);
     }
+
+    async function redeemPromoCode(code){
+      const normalizedCode = String(code || "").trim().toUpperCase().replace(/\s+/g, "-");
+      if(!normalizedCode) throw new Error("Escribe un código promo.");
+      if(!currentUser?.uid) throw new Error("Inicia sesión para redimir tu código.");
+      if(!cloudFunctions) throw new Error("Cloud Functions no está disponible.");
+      await loadActiveWorkspaceAndPlan();
+      const callable = httpsCallable(cloudFunctions, "redeemPromoCode");
+      const result = await callable({ code: normalizedCode });
+      await loadActiveWorkspaceAndPlan();
+      const plan = result?.data?.plan || getCurrentPlan();
+      return { ok: true, plan, planExpiresAt: result?.data?.planExpiresAt || null };
+    }
+
+    async function handleRedeemCodeSubmit(event){
+      event?.preventDefault();
+      const code = redeemCodeInput?.value || "";
+      if(redeemCodeError){
+        redeemCodeError.textContent = "";
+        redeemCodeError.classList.add("d-none");
+      }
+      if(redeemCodeSubmit) redeemCodeSubmit.disabled = true;
+      try{
+        const result = await redeemPromoCode(code);
+        redeemCodeModal?.hide();
+        proModal?.hide();
+        if(redeemCodeInput) redeemCodeInput.value = "";
+        const label = PLAN_LABELS[result.plan] || "Pro";
+        showToast(`Código aplicado. Ahora tienes PocketFlow ${label}.`, { tone: "success", duration: 3600 });
+      }catch(err){
+        const message = err?.message || "No pudimos aplicar el código.";
+        if(redeemCodeError){
+          redeemCodeError.textContent = message;
+          redeemCodeError.classList.remove("d-none");
+        }
+        showToast(message, { tone: "warning", duration: 4200 });
+      }finally{
+        if(redeemCodeSubmit) redeemCodeSubmit.disabled = false;
+      }
+    }
+
     window.showProComingSoon = showProComingSoon;
+    window.showRedeemCodeModal = showRedeemCodeModal;
+    window.redeemPromoCode = redeemPromoCode;
+
+    proRedeemCta?.addEventListener("click", ()=>{
+      proModal?.hide();
+      showRedeemCodeModal();
+    });
+    redeemCodeForm?.addEventListener("submit", handleRedeemCodeSubmit);
 
     window.exportCSV=()=>{
+      if(!hasFeature("csvExport")){
+        showProComingSoon("csvExport");
+        return;
+      }
       if(window.PILOT_DISABLE_CSV){
-        showProComingSoon();
+        showProComingSoon("csvExport");
         return;
       }
       let csv="Fecha,Concepto,Categoria,Monto,Tipo,Cuenta,Persona,Scope,MSI,MSI_Meses,MSI_Inicio\n";
