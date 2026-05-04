@@ -788,6 +788,7 @@
             <p class="text-muted mb-0">Un panel financiero personal para gastos, tarjetas, categorías y reportes.</p>
             <div class="landing-cta">
               <button class="btn btn-primary w-100" type="button" id="landing-register-btn">Crear cuenta gratis</button>
+              <button class="btn btn-outline-primary w-100" type="button" onclick="showProComingSoon('landing')">Obtener Pro</button>
               <button class="btn btn-outline-secondary w-100" type="button" id="landing-login-btn">Iniciar sesión</button>
             </div>
             <div class="landing-trust">Piloto privado · Datos seguros · Sin cargos</div>
@@ -883,7 +884,7 @@
               <p class="text-muted small mb-0">Resúmenes claros para tu día a día.</p>
             </div>
             <div class="landing-feature-card">
-              <h6>Exportar CSV (Pro)</h6>
+              <h6>Descargar CSV (Pro) 🔒</h6>
               <p class="text-muted small mb-0">Exportaciones avanzadas para tu contabilidad.</p>
             </div>
             <div class="landing-feature-card">
@@ -905,15 +906,22 @@
               </ul>
             </div>
             <div class="landing-plan-card">
-              <h6>PocketFlow Pro (Próximamente)</h6>
+              <h6>PocketFlow Pro</h6>
+              <p class="text-muted small mb-2">Disponible en PocketFlow Pro.</p>
               <ul>
-                <li>Descargar CSV</li>
+                <li>Exportar CSV</li>
+                <li>Reportes avanzados</li>
                 <li>Alertas inteligentes</li>
-                <li>Metas financieras</li>
+                <li>Metas ilimitadas</li>
+                <li>Más cuentas</li>
+                <li>Modo pareja</li>
               </ul>
-              <div class="d-grid mt-3">
-                <button class="btn btn-primary" type="button" onclick="showProComingSoon()">
-                  Quiero Pro
+              <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-primary" type="button" onclick="showProComingSoon('landing-plans')">
+                  Obtener Pro
+                </button>
+                <button class="btn btn-outline-secondary" type="button" onclick="openRedeemCodeModal()">
+                  Tengo un código
                 </button>
               </div>
             </div>
@@ -1551,7 +1559,9 @@
         <button class="btn btn-sm btn-outline-secondary btn-disabled" style="border-color:var(--border-color);color:var(--text-muted);" onclick="showProComingSoon()" type="button" aria-disabled="true">
           <i class="fas fa-file-csv me-1"></i> Descargar CSV (Pro) 🔒
         </button>
-        <button class="small text-muted mt-1 border-0 bg-transparent p-0" type="button" onclick="showProComingSoon()">Adquiere Pro para descargar CSV</button>
+        <div class="small text-muted mt-1">Disponible en PocketFlow Pro</div>
+        <button class="btn btn-sm btn-primary mt-2" type="button" onclick="showProComingSoon('csv')">Obtener Pro</button>
+        <div class="small text-muted mt-1">Activa Pro para desbloquear reportes, CSV y alertas.</div>
       </div>
     </div>
 
@@ -1688,9 +1698,21 @@
         <h4 class="fw-black m-0">Ajustes</h4>
         <div class="text-muted small">Personaliza personas, cuentas y categorías.</div>
       </div>
-      <button class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="nav('view-home')">
-        <i class="fas fa-arrow-left me-1"></i> Volver
-      </button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-primary" type="button" onclick="showProComingSoon('settings')">Obtener Pro</button>
+        <button class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="nav('view-home')">
+          <i class="fas fa-arrow-left me-1"></i> Volver
+        </button>
+      </div>
+    </div>
+
+    <div class="card-box pro-settings-card">
+      <div>
+        <div class="pro-eyebrow">Disponible en PocketFlow Pro</div>
+        <h6 class="fw-black mb-1">Activa Pro para desbloquear reportes, CSV y alertas.</h6>
+        <p class="text-muted small mb-0">Incluye más cuentas, metas ilimitadas y modo pareja para planear con claridad.</p>
+      </div>
+      <button class="btn btn-primary" type="button" onclick="showProComingSoon('settings-banner')">Obtener Pro</button>
     </div>
 
     <div class="card-box">
@@ -1989,19 +2011,68 @@
   </div>
 
   <div class="modal fade" id="modalPro" tabindex="-1" aria-labelledby="modalProLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content pro-modal-content border-0">
+        <div class="modal-body p-0">
+          <div class="pro-modal-hero">
+            <button type="button" class="btn-close pro-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <span class="pro-badge">Próximamente / Acceso anticipado</span>
+            <h5 class="fw-black mb-2" id="modalProLabel">PocketFlow Pro</h5>
+            <p class="pro-subtitle mb-0">Más control, más claridad y menos sorpresas.</p>
+            <div class="pro-price-box">
+              <div><strong>$49 MXN</strong> <span>/ mes</span></div>
+              <div class="pro-price-divider">o</div>
+              <div><strong>$399 MXN</strong> <span>/ año</span></div>
+            </div>
+          </div>
+          <div class="pro-modal-body">
+            <div class="pro-copy-card">
+              <div class="pro-eyebrow">Disponible en PocketFlow Pro</div>
+              <h6 class="fw-black mb-1">Activa Pro para desbloquear reportes, CSV y alertas.</h6>
+              <p class="text-muted small mb-0">Estamos validando ventas manuales antes de Stripe. Te compartiremos un código de activación por WhatsApp.</p>
+            </div>
+            <div class="pro-benefits-grid" aria-label="Beneficios PocketFlow Pro">
+              <div><i class="fas fa-file-csv"></i>Exportar CSV</div>
+              <div><i class="fas fa-chart-line"></i>Reportes avanzados</div>
+              <div><i class="fas fa-bell"></i>Alertas inteligentes</div>
+              <div><i class="fas fa-bullseye"></i>Metas ilimitadas</div>
+              <div><i class="fas fa-wallet"></i>Más cuentas</div>
+              <div><i class="fas fa-user-friends"></i>Modo pareja</div>
+            </div>
+            <div id="pro-contact-message" class="alert alert-info small mb-0 d-none">
+              Para activar PocketFlow Pro, envíanos mensaje y te compartimos tu código de activación.
+            </div>
+            <div class="pro-actions">
+              <button class="btn btn-primary btn-lg" type="button" onclick="activateProViaWhatsApp()">Quiero activar Pro</button>
+              <button class="btn btn-outline-secondary btn-lg" type="button" onclick="openRedeemCodeModal()">Tengo un código</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalRedeemCode" tabindex="-1" aria-labelledby="modalRedeemCodeLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content card-box border-0">
         <div class="modal-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
-              <h5 class="fw-black mb-1" id="modalProLabel">Versión Pro próximamente 🚀</h5>
-              <p class="text-muted small mb-0">Estamos preparando reportes avanzados, exportación CSV, alertas inteligentes y más herramientas para controlar mejor tu dinero.</p>
+              <h5 class="fw-black mb-1" id="modalRedeemCodeLabel">Tengo un código</h5>
+              <p class="text-muted small mb-0">Ingresa tu código de activación PocketFlow Pro.</p>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
-          <div class="d-flex gap-2 mt-4">
-            <button class="btn btn-primary flex-fill" type="button" data-bs-dismiss="modal">Quiero Pro</button>
-            <button class="btn btn-light flex-fill" type="button" data-bs-dismiss="modal">Cerrar</button>
+          <div class="mb-3">
+            <label class="small text-muted fw-bold" for="redeem-code-input">Código</label>
+            <input type="text" id="redeem-code-input" class="form-control admin-code" placeholder="PRO-ABC123" autocomplete="off" />
+          </div>
+          <div id="redeem-code-message" class="alert alert-info small">
+            Redención automática próximamente. Envíanos tu código para activarlo manualmente.
+          </div>
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary flex-fill" type="button" onclick="applyRedeemCode()">Aplicar código</button>
+            <button class="btn btn-light flex-fill" type="button" data-bs-dismiss="modal">Cancelar</button>
           </div>
         </div>
       </div>
@@ -8881,10 +8952,15 @@
       setLoading(btn, false);
     };
 
+    const PRO_WHATSAPP_URL = "https://wa.me/52TU_NUMERO?text=Hola%2C%20quiero%20activar%20PocketFlow%20Pro";
+    const PRO_ACTIVATION_MESSAGE = "Para activar PocketFlow Pro, envíanos mensaje y te compartimos tu código de activación.";
     let proModal = null;
-    function openProModal(){
+    let redeemCodeModal = null;
+
+    function openProModal(featureKey){
       const modalEl = document.getElementById("modalPro");
       if(!modalEl || !window.bootstrap) return false;
+      modalEl.dataset.featureKey = featureKey || "pro";
       if(!proModal){
         proModal = new bootstrap.Modal(modalEl);
       }
@@ -8892,16 +8968,62 @@
       return true;
     }
 
-    function showProComingSoon(){
-      const message = "Versión Pro próximamente 🚀\nEstamos preparando reportes avanzados, exportación CSV, alertas inteligentes y más herramientas para controlar mejor tu dinero.";
-      if(openProModal()) return;
+    function showProComingSoon(featureKey){
+      if(openProModal(featureKey)) return;
       if(typeof showToast === "function"){
-        showToast(message, { tone: "info", duration: 5200 });
+        showToast("Activa Pro para desbloquear reportes, CSV y alertas.", { tone: "info", duration: 5200 });
         return;
       }
-      alert(message);
+      alert("PocketFlow Pro\n" + PRO_ACTIVATION_MESSAGE);
     }
+
+    function activateProViaWhatsApp(){
+      const messageEl = document.getElementById("pro-contact-message");
+      if(messageEl) messageEl.classList.remove("d-none");
+      if(typeof showToast === "function"){
+        showToast(PRO_ACTIVATION_MESSAGE, { tone: "info", duration: 5200 });
+      }
+      window.open(PRO_WHATSAPP_URL, "_blank", "noopener");
+    }
+
+    function openRedeemCodeModal(){
+      const modalEl = document.getElementById("modalRedeemCode");
+      if(!modalEl || !window.bootstrap){
+        showToast?.("Redención automática próximamente. Envíanos tu código para activarlo manualmente.", { tone: "info", duration: 5200 });
+        return false;
+      }
+      if(proModal) proModal.hide();
+      if(!redeemCodeModal){
+        redeemCodeModal = new bootstrap.Modal(modalEl);
+      }
+      redeemCodeModal.show();
+      setTimeout(()=>document.getElementById("redeem-code-input")?.focus(), 250);
+      return true;
+    }
+
+    function applyRedeemCode(){
+      const input = document.getElementById("redeem-code-input");
+      const messageEl = document.getElementById("redeem-code-message");
+      const code = (input?.value || "").trim().toUpperCase().replace(/\s+/g, "-");
+      if(input) input.value = code;
+      if(typeof window.redeemPromoCode === "function"){
+        window.redeemPromoCode(code);
+        return;
+      }
+      const message = "Redención automática próximamente. Envíanos tu código para activarlo manualmente.";
+      if(messageEl){
+        messageEl.textContent = code ? `${message} Código: ${code}` : message;
+        messageEl.classList.remove("d-none");
+      }
+      if(typeof showToast === "function"){
+        showToast(message, { tone: "info", duration: 5200 });
+      }
+    }
+
     window.showProComingSoon = showProComingSoon;
+    window.activateProViaWhatsApp = activateProViaWhatsApp;
+    window.openRedeemCodeModal = openRedeemCodeModal;
+    window.applyRedeemCode = applyRedeemCode;
 
     window.exportCSV=()=>{
       if(window.PILOT_DISABLE_CSV){
