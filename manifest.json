@@ -1,13 +1,13 @@
 {
   "id": "/",
-  "name": "Finanzas Yayos 2026",
-  "short_name": "Finanzas",
-  "description": "Control financiero personal de Haru y Yair",
+  "name": "PocketFlow",
+  "short_name": "PocketFlow",
+  "description": "Tu control de gastos e ingresos",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f3f4f6",
+  "background_color": "#111827",
   "theme_color": "#2563eb",
   "icons": [
     {
