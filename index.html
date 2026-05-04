@@ -68,6 +68,15 @@
       display:flex; justify-content:space-between; align-items:center;
       border:1px solid var(--border-color);
     }
+    .admin-grid{display:grid; grid-template-columns:1fr; gap:16px;}
+    .admin-card{border:1px solid var(--border-color);}
+    .admin-result{border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px;}
+    .admin-log-item{border-bottom:1px solid var(--border-color); padding:10px 0;}
+    .admin-log-item:last-child{border-bottom:none;}
+    .admin-code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; font-weight:800;}
+    @media (min-width: 992px){
+      .admin-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);}
+    }
     .badge-status{padding:4px 8px; border-radius:6px; font-size:.7rem; font-weight:700; text-transform:uppercase;}
     .bg-danger-light{background:rgba(239,68,68,.15); color:var(--danger);}
     .bg-success-light{background:rgba(16,185,129,.15); color:var(--success);}
@@ -1067,6 +1076,7 @@
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-hist')"><i class="fas fa-list-ul me-2"></i>Historial</button>
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-goals')"><span class="me-2">🏆</span>Metas</button>
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-settings')"><i class="fas fa-sliders me-2"></i>Ajustes</button>
+        <button class="btn btn-outline-secondary text-start d-none" type="button" onclick="nav('view-admin')" data-admin-only><i class="fas fa-shield-halved me-2"></i>Admin</button>
       </div>
     </aside>
 
@@ -1725,6 +1735,113 @@
     </div>
   </div>
 
+  <!-- =======================
+        ✅ ADMIN
+  ======================= -->
+  <div id="view-admin" class="view-section p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h4 class="fw-black m-0">Admin PocketFlow</h4>
+        <div class="text-muted small">Administración manual de usuarios, workspaces, planes y promociones.</div>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" style="border-color:var(--border-color);color:var(--text-muted);" onclick="nav('view-home')">
+        <i class="fas fa-arrow-left me-1"></i> Volver
+      </button>
+    </div>
+
+    <div id="admin-access-denied" class="alert alert-warning d-none">
+      Solo los correos configurados en <strong>ADMIN_EMAILS</strong> pueden entrar a este módulo.
+    </div>
+
+    <div id="admin-panel" class="admin-grid d-none">
+      <div>
+        <div class="card-box admin-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h6 class="fw-bold m-0">Buscar usuarios</h6>
+              <div class="text-muted small">Busca por email y revisa sus workspaces vinculados.</div>
+            </div>
+            <span class="badge-status bg-success-light" id="admin-email-badge">ADMIN</span>
+          </div>
+          <form id="admin-user-search-form" class="input-group mb-3">
+            <input type="email" id="admin-user-email" class="form-control" placeholder="usuario@email.com" autocomplete="off" required />
+            <button class="btn btn-primary" type="submit" id="admin-search-btn">Buscar</button>
+          </form>
+          <div id="admin-status" class="text-muted small mb-3"></div>
+          <div id="admin-users-list"></div>
+        </div>
+
+        <div class="card-box admin-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h6 class="fw-bold m-0">Workspaces</h6>
+              <div class="text-muted small">El plan se administra en <code>workspaces/{workspaceId}</code>, no en el usuario.</div>
+            </div>
+          </div>
+          <div class="input-group mb-3">
+            <input type="text" id="admin-workspace-id" class="form-control" placeholder="workspaceId manual" />
+            <button class="btn btn-outline-primary" type="button" id="admin-load-workspace-btn">Cargar</button>
+          </div>
+          <div id="admin-workspaces-list"><small class="text-muted">Busca un usuario o carga un workspace manualmente.</small></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card-box admin-card">
+          <h6 class="fw-bold m-0">Generar código promo</h6>
+          <div class="text-muted small mb-3">Se guarda en <code>promoCodes/{code}</code> para redimirlo más adelante.</div>
+          <form id="admin-promo-form" class="row g-2">
+            <div class="col-12">
+              <label class="small text-muted fw-bold">Código</label>
+              <div class="input-group">
+                <input type="text" id="admin-promo-code" class="form-control admin-code" placeholder="PRO-ABC123" required />
+                <button class="btn btn-outline-secondary" type="button" id="admin-random-code-btn">Aleatorio</button>
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="small text-muted fw-bold">Plan</label>
+              <select id="admin-promo-plan" class="form-select">
+                <option value="free">free</option>
+                <option value="pro" selected>pro</option>
+                <option value="couple">couple</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="small text-muted fw-bold">Expira</label>
+              <input type="date" id="admin-promo-expiration" class="form-control" />
+            </div>
+            <div class="col-6">
+              <label class="small text-muted fw-bold">Usos máximos</label>
+              <input type="number" id="admin-promo-max" class="form-control" min="1" value="1" />
+            </div>
+            <div class="col-6">
+              <label class="small text-muted fw-bold">Días de plan</label>
+              <input type="number" id="admin-promo-days" class="form-control" min="1" placeholder="30" />
+            </div>
+            <div class="col-12">
+              <label class="small text-muted fw-bold">Notas</label>
+              <input type="text" id="admin-promo-notes" class="form-control" placeholder="Campaña, usuario o motivo" />
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary w-100" type="submit" id="admin-save-promo-btn">Crear promo</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-box admin-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h6 class="fw-bold m-0">Historial admin</h6>
+              <div class="text-muted small">Últimos cambios en <code>adminLogs</code>.</div>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="admin-refresh-logs-btn">Actualizar</button>
+          </div>
+          <div id="admin-logs-list"><small class="text-muted">Sin cargar.</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
       </div>
     </main>
   </div>
@@ -1780,6 +1897,11 @@
     <div class="nav-container-item">
       <button class="nav-btn" onclick="nav('view-settings')" id="nav-settings">
         <i class="fas fa-sliders"></i> Ajustes
+      </button>
+    </div>
+    <div class="nav-container-item d-none" data-admin-only>
+      <button class="nav-btn" onclick="nav('view-admin')" id="nav-admin">
+        <i class="fas fa-shield-halved"></i> Admin
       </button>
     </div>
   </div>
@@ -2011,6 +2133,10 @@
 
     const { app: firebaseApp, db } = initFirebase();
     const auth = firebaseApp ? getAuth(firebaseApp) : null;
+    const ADMIN_EMAILS = (window.ADMIN_EMAILS || ["yair.tenorio.silva@gmail.com"])
+      .map((email) => String(email).trim().toLowerCase())
+      .filter(Boolean);
+
 
     // =========================
     // ✅ CONFIG SHEETS
@@ -2081,6 +2207,27 @@
     const landingRegisterBtn = document.getElementById("landing-register-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const authGreeting = document.getElementById("auth-greeting");
+    const adminAccessDenied = document.getElementById("admin-access-denied");
+    const adminPanel = document.getElementById("admin-panel");
+    const adminEmailBadge = document.getElementById("admin-email-badge");
+    const adminStatus = document.getElementById("admin-status");
+    const adminUserSearchForm = document.getElementById("admin-user-search-form");
+    const adminUserEmailInput = document.getElementById("admin-user-email");
+    const adminSearchBtn = document.getElementById("admin-search-btn");
+    const adminUsersList = document.getElementById("admin-users-list");
+    const adminWorkspaceIdInput = document.getElementById("admin-workspace-id");
+    const adminLoadWorkspaceBtn = document.getElementById("admin-load-workspace-btn");
+    const adminWorkspacesList = document.getElementById("admin-workspaces-list");
+    const adminPromoForm = document.getElementById("admin-promo-form");
+    const adminPromoCodeInput = document.getElementById("admin-promo-code");
+    const adminPromoPlanInput = document.getElementById("admin-promo-plan");
+    const adminPromoExpirationInput = document.getElementById("admin-promo-expiration");
+    const adminPromoMaxInput = document.getElementById("admin-promo-max");
+    const adminPromoDaysInput = document.getElementById("admin-promo-days");
+    const adminPromoNotesInput = document.getElementById("admin-promo-notes");
+    const adminRandomCodeBtn = document.getElementById("admin-random-code-btn");
+    const adminRefreshLogsBtn = document.getElementById("admin-refresh-logs-btn");
+    const adminLogsList = document.getElementById("admin-logs-list");
     const onboardingOverlay = document.getElementById("onboarding-overlay");
     const onboardingStepLabel = document.getElementById("onboarding-step-label");
     const onboardingProgress = document.getElementById("onboarding-progress");
@@ -2378,7 +2525,6 @@
         },
         settings: {},
         status: "active",
-        plan: "free",
         role: "owner",
         provider: user.providerData?.[0]?.providerId ?? "password"
       };
@@ -2442,7 +2588,6 @@
         updatedAt: serverTimestamp(),
         defaultOwnerId: null,
         defaultAccountId: null,
-        plan: "free",
         migrations: {}
       };
       await setDoc(getAppSettingsDoc(), defaults, { merge: true });
@@ -2467,7 +2612,6 @@
         defaultExpenseCategoryId: currentSettings.defaultExpenseCategoryId || expenseCatsSnap.docs[0]?.id || null,
         defaultIncomeCategoryId: currentSettings.defaultIncomeCategoryId || incomeCatsSnap.docs[0]?.id || null,
         onboardingDone: currentSettings.onboardingDone ?? false,
-        plan: currentSettings.plan || "free",
         migrations: currentSettings.migrations || {},
         updatedAt: serverTimestamp()
       };
@@ -3010,6 +3154,348 @@
       return err?.message ? `Error inesperado: ${err.message}` : "Error inesperado de Firestore.";
     }
 
+
+    const ADMIN_PLANS = ["free", "pro", "couple"];
+    let adminSelectedUser = null;
+    let adminWorkspaces = [];
+    let adminLogsLoaded = false;
+
+    function normalizeEmail(email){
+      return String(email || "").trim().toLowerCase();
+    }
+
+    function isCurrentUserAdmin(){
+      return ADMIN_EMAILS.includes(normalizeEmail(currentUser?.email));
+    }
+
+    function escapeHtml(value){
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function toJsDate(value){
+      if(!value) return null;
+      if(typeof value.toDate === "function") return value.toDate();
+      if(value instanceof Date) return value;
+      if(typeof value === "string"){
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date;
+      }
+      return null;
+    }
+
+    function formatAdminDate(value){
+      const date = toJsDate(value);
+      if(!date) return "Sin expiración";
+      return date.toLocaleDateString("es-MX", { year: "numeric", month: "short", day: "2-digit" });
+    }
+
+    function toDateInputValue(value){
+      const date = toJsDate(value);
+      if(!date) return "";
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function timestampFromDateInput(value){
+      if(!value) return null;
+      const [year, month, day] = value.split("-").map(Number);
+      if(!year || !month || !day) return null;
+      return Timestamp.fromDate(new Date(year, month - 1, day, 23, 59, 59));
+    }
+
+    function setAdminStatus(message, tone = "muted"){
+      if(!adminStatus) return;
+      adminStatus.textContent = message || "";
+      adminStatus.className = `small mb-3 text-${tone}`;
+    }
+
+    function updateAdminAccessUi(){
+      const isAdmin = isCurrentUserAdmin();
+      document.querySelectorAll("[data-admin-only]").forEach((el)=>{
+        el.classList.toggle("d-none", !isAdmin);
+      });
+      if(adminAccessDenied) adminAccessDenied.classList.toggle("d-none", isAdmin);
+      if(adminPanel) adminPanel.classList.toggle("d-none", !isAdmin);
+      if(adminEmailBadge) adminEmailBadge.textContent = currentUser?.email || "ADMIN";
+      if(!isAdmin){
+        adminSelectedUser = null;
+        adminWorkspaces = [];
+        if(adminUsersList) adminUsersList.innerHTML = "";
+        if(adminWorkspacesList) adminWorkspacesList.innerHTML = `<small class="text-muted">Acceso restringido.</small>`;
+      }
+      return isAdmin;
+    }
+
+    function getRequestedAdminRoute(){
+      return window.location.pathname.endsWith("/admin") || window.location.hash === "#admin";
+    }
+
+    function openRequestedRoute(){
+      if(getRequestedAdminRoute() && isCurrentUserAdmin()){
+        nav("view-admin");
+      }
+    }
+
+    async function logAdminAction(action, details = {}){
+      if(!db || !isCurrentUserAdmin()) return;
+      await addDoc(collection(db, "adminLogs"), {
+        action,
+        adminUid: currentUser?.uid || null,
+        adminEmail: currentUser?.email || null,
+        createdAt: serverTimestamp(),
+        ...details
+      });
+    }
+
+    async function loadAdminLogs(){
+      if(!db || !isCurrentUserAdmin() || !adminLogsList) return;
+      adminLogsList.innerHTML = `<small class="text-muted">Cargando historial...</small>`;
+      try{
+        const logsSnap = await getDocs(query(collection(db, "adminLogs"), orderBy("createdAt", "desc"), limit(25)));
+        if(logsSnap.empty){
+          adminLogsList.innerHTML = `<small class="text-muted">Aún no hay cambios admin.</small>`;
+          adminLogsLoaded = true;
+          return;
+        }
+        adminLogsList.innerHTML = logsSnap.docs.map((docSnap)=>{
+          const log = docSnap.data();
+          const target = [log.targetType, log.targetId].filter(Boolean).join("/") || "-";
+          return `<div class="admin-log-item">
+            <div class="d-flex justify-content-between gap-2">
+              <strong>${escapeHtml(log.action || "acción")}</strong>
+              <span class="text-muted small">${escapeHtml(formatAdminDate(log.createdAt))}</span>
+            </div>
+            <div class="text-muted small">${escapeHtml(log.adminEmail || "admin")} · ${escapeHtml(target)}</div>
+          </div>`;
+        }).join("");
+        adminLogsLoaded = true;
+      }catch(err){
+        adminLogsList.innerHTML = `<small class="text-danger">${escapeHtml(getFirestoreErrorMessage(err))}</small>`;
+      }
+    }
+
+    function renderAdminUsers(users){
+      if(!adminUsersList) return;
+      if(!users.length){
+        adminUsersList.innerHTML = `<div class="alert alert-info small mb-0">No encontramos usuarios con ese email.</div>`;
+        return;
+      }
+      adminUsersList.innerHTML = users.map((user)=>`
+        <div class="admin-result">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <div class="fw-bold">${escapeHtml(user.email || user.profile?.email || "Sin email")}</div>
+              <div class="text-muted small">UID: <span class="admin-code">${escapeHtml(user.id)}</span></div>
+              <div class="text-muted small">Nombre: ${escapeHtml(user.displayName || user.profile?.displayName || "-")}</div>
+            </div>
+            <button class="btn btn-sm btn-outline-primary" type="button" data-admin-user-id="${escapeHtml(user.id)}">Ver workspaces</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function searchAdminUsers(event){
+      event?.preventDefault();
+      if(!db || !isCurrentUserAdmin()) return;
+      const rawEmail = String(adminUserEmailInput?.value || "").trim();
+      const email = normalizeEmail(rawEmail);
+      if(!email){
+        setAdminStatus("Escribe un email para buscar.", "warning");
+        return;
+      }
+      if(adminSearchBtn) adminSearchBtn.disabled = true;
+      setAdminStatus("Buscando usuario...");
+      try{
+        const emailsToTry = [...new Set([email, rawEmail].filter(Boolean))];
+        const foundUsers = new Map();
+        for(const emailToTry of emailsToTry){
+          const usersSnap = await getDocs(query(collection(db, "users"), where("email", "==", emailToTry), limit(10)));
+          usersSnap.docs.forEach((docSnap)=>foundUsers.set(docSnap.id, { id: docSnap.id, ...docSnap.data() }));
+        }
+        const users = [...foundUsers.values()];
+        adminSelectedUser = users[0] || null;
+        renderAdminUsers(users);
+        setAdminStatus(users.length ? `${users.length} usuario(s) encontrado(s).` : "Sin resultados.", users.length ? "muted" : "warning");
+        if(adminSelectedUser) await loadWorkspacesForUser(adminSelectedUser);
+      }catch(err){
+        setAdminStatus(getFirestoreErrorMessage(err), "danger");
+      }finally{
+        if(adminSearchBtn) adminSearchBtn.disabled = false;
+      }
+    }
+
+    function mergeWorkspace(map, docSnap){
+      if(docSnap?.exists()) map.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
+    }
+
+    async function loadWorkspacesForUser(user){
+      if(!db || !isCurrentUserAdmin() || !user?.id) return;
+      if(adminWorkspacesList) adminWorkspacesList.innerHTML = `<small class="text-muted">Cargando workspaces...</small>`;
+      try{
+        const workspaceMap = new Map();
+        const workspaceIds = new Set([user.workspaceId, ...(Array.isArray(user.workspaceIds) ? user.workspaceIds : [])].filter(Boolean));
+        await Promise.all([...workspaceIds].map(async(workspaceId)=>{
+          const snap = await getDoc(doc(db, "workspaces", workspaceId));
+          mergeWorkspace(workspaceMap, snap);
+        }));
+        const ownedSnap = await getDocs(query(collection(db, "workspaces"), where("ownerUid", "==", user.id), limit(20)));
+        ownedSnap.forEach((docSnap)=>mergeWorkspace(workspaceMap, docSnap));
+        const memberSnap = await getDocs(query(collection(db, "workspaces"), where("memberUids", "array-contains", user.id), limit(20)));
+        memberSnap.forEach((docSnap)=>mergeWorkspace(workspaceMap, docSnap));
+        adminWorkspaces = [...workspaceMap.values()];
+        renderAdminWorkspaces();
+      }catch(err){
+        if(adminWorkspacesList) adminWorkspacesList.innerHTML = `<small class="text-danger">${escapeHtml(getFirestoreErrorMessage(err))}</small>`;
+      }
+    }
+
+    async function loadWorkspaceById(){
+      if(!db || !isCurrentUserAdmin()) return;
+      const workspaceId = adminWorkspaceIdInput?.value.trim();
+      if(!workspaceId) return;
+      if(adminLoadWorkspaceBtn) adminLoadWorkspaceBtn.disabled = true;
+      try{
+        const snap = await getDoc(doc(db, "workspaces", workspaceId));
+        if(!snap.exists()){
+          if(adminWorkspacesList) adminWorkspacesList.innerHTML = `<div class="alert alert-warning small mb-0">No existe el workspace ${escapeHtml(workspaceId)}.</div>`;
+          return;
+        }
+        adminWorkspaces = [{ id: snap.id, ...snap.data() }];
+        renderAdminWorkspaces();
+      }catch(err){
+        if(adminWorkspacesList) adminWorkspacesList.innerHTML = `<small class="text-danger">${escapeHtml(getFirestoreErrorMessage(err))}</small>`;
+      }finally{
+        if(adminLoadWorkspaceBtn) adminLoadWorkspaceBtn.disabled = false;
+      }
+    }
+
+    function renderAdminWorkspaces(){
+      if(!adminWorkspacesList) return;
+      if(!adminWorkspaces.length){
+        adminWorkspacesList.innerHTML = `<div class="alert alert-info small mb-0">Este usuario no tiene workspaces vinculados. El plan debe vivir en un documento de <code>workspaces</code>.</div>`;
+        return;
+      }
+      adminWorkspacesList.innerHTML = adminWorkspaces.map((workspace)=>{
+        const plan = ADMIN_PLANS.includes(workspace.plan) ? workspace.plan : "free";
+        const expiration = toDateInputValue(workspace.planExpiresAt || workspace.expiresAt);
+        return `<div class="admin-result" data-admin-workspace="${escapeHtml(workspace.id)}">
+          <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+            <div>
+              <div class="fw-bold">${escapeHtml(workspace.name || workspace.id)}</div>
+              <div class="text-muted small">Workspace ID: <span class="admin-code">${escapeHtml(workspace.id)}</span></div>
+              <div class="text-muted small">Plan actual: <strong>${escapeHtml(plan)}</strong> · Expira: ${escapeHtml(formatAdminDate(workspace.planExpiresAt || workspace.expiresAt))}</div>
+            </div>
+            <span class="badge-status bg-warning-light">${escapeHtml(plan)}</span>
+          </div>
+          <div class="row g-2 align-items-end">
+            <div class="col-6 col-md-4">
+              <label class="small text-muted fw-bold">Plan</label>
+              <select class="form-select" data-admin-plan>
+                ${ADMIN_PLANS.map((option)=>`<option value="${option}" ${option === plan ? "selected" : ""}>${option}</option>`).join("")}
+              </select>
+            </div>
+            <div class="col-6 col-md-4">
+              <label class="small text-muted fw-bold">Expiración</label>
+              <input type="date" class="form-control" data-admin-expiration value="${escapeHtml(expiration)}" />
+            </div>
+            <div class="col-12 col-md-4">
+              <button class="btn btn-primary w-100" type="button" data-admin-save-workspace>Guardar cambios</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    async function saveWorkspacePlan(button){
+      if(!db || !isCurrentUserAdmin()) return;
+      const item = button.closest("[data-admin-workspace]");
+      const workspaceId = item?.dataset.adminWorkspace;
+      if(!workspaceId) return;
+      const plan = item.querySelector("[data-admin-plan]")?.value || "free";
+      const expirationValue = item.querySelector("[data-admin-expiration]")?.value || "";
+      button.disabled = true;
+      try{
+        const payload = {
+          plan,
+          planExpiresAt: timestampFromDateInput(expirationValue),
+          updatedAt: serverTimestamp(),
+          updatedBy: currentUser?.uid || null,
+          updatedByEmail: currentUser?.email || null
+        };
+        await setDoc(doc(db, "workspaces", workspaceId), payload, { merge: true });
+        await logAdminAction("workspace_plan_update", {
+          targetType: "workspace",
+          targetId: workspaceId,
+          before: adminWorkspaces.find((workspace)=>workspace.id === workspaceId) || null,
+          after: { plan, planExpiresAt: expirationValue || null }
+        });
+        const snap = await getDoc(doc(db, "workspaces", workspaceId));
+        adminWorkspaces = adminWorkspaces.map((workspace)=>workspace.id === workspaceId ? { id: snap.id, ...snap.data() } : workspace);
+        renderAdminWorkspaces();
+        loadAdminLogs();
+        showToast("Plan actualizado en workspace.", { tone: "success" });
+      }catch(err){
+        showToast(getFirestoreErrorMessage(err), { tone: "warning", duration: 3200 });
+      }finally{
+        button.disabled = false;
+      }
+    }
+
+    function generatePromoCode(){
+      const plan = (adminPromoPlanInput?.value || "PRO").toUpperCase();
+      const random = Math.random().toString(36).slice(2, 8).toUpperCase();
+      if(adminPromoCodeInput) adminPromoCodeInput.value = `${plan}-${random}`;
+    }
+
+    async function savePromoCode(event){
+      event?.preventDefault();
+      if(!db || !isCurrentUserAdmin()) return;
+      const code = (adminPromoCodeInput?.value || "").trim().toUpperCase().replace(/\s+/g, "-");
+      if(!code){
+        showToast("Escribe un código promo.", { tone: "warning" });
+        return;
+      }
+      const payload = {
+        code,
+        plan: adminPromoPlanInput?.value || "pro",
+        expiresAt: timestampFromDateInput(adminPromoExpirationInput?.value || ""),
+        maxRedemptions: Math.max(1, Number(adminPromoMaxInput?.value || 1)),
+        redeemedCount: 0,
+        planDays: adminPromoDaysInput?.value ? Math.max(1, Number(adminPromoDaysInput.value)) : null,
+        notes: adminPromoNotesInput?.value.trim() || "",
+        status: "active",
+        createdAt: serverTimestamp(),
+        createdBy: currentUser?.uid || null,
+        createdByEmail: currentUser?.email || null
+      };
+      const saveBtn = document.getElementById("admin-save-promo-btn");
+      if(saveBtn) saveBtn.disabled = true;
+      try{
+        await setDoc(doc(db, "promoCodes", code), payload, { merge: false });
+        await logAdminAction("promo_code_create", {
+          targetType: "promoCode",
+          targetId: code,
+          after: { plan: payload.plan, expiresAt: adminPromoExpirationInput?.value || null, maxRedemptions: payload.maxRedemptions }
+        });
+        adminPromoForm?.reset();
+        if(adminPromoMaxInput) adminPromoMaxInput.value = "1";
+        if(adminPromoPlanInput) adminPromoPlanInput.value = "pro";
+        loadAdminLogs();
+        showToast(`Promo ${code} creada.`, { tone: "success" });
+      }catch(err){
+        showToast(getFirestoreErrorMessage(err), { tone: "warning", duration: 3200 });
+      }finally{
+        if(saveBtn) saveBtn.disabled = false;
+      }
+    }
+
     function unsubscribeAll(){
       if(unsubOwners){
         unsubOwners();
@@ -3052,6 +3538,8 @@
       APP_STATE.user = currentUser;
       setAuthVisibility(true);
       updateGreeting(user);
+      updateAdminAccessUi();
+      openRequestedRoute();
     }
 
     function showUnauthenticatedState(){
@@ -3061,6 +3549,7 @@
       window.currentUser = null;
       window.userProfile = null;
       APP_STATE.user = null;
+      updateAdminAccessUi();
       toggleOnboardingVisibility(false);
       unsubscribeAll();
       appReady = false;
@@ -3237,6 +3726,48 @@
           logoutBtn.disabled = false;
         }
       });
+    }
+    if(adminUserSearchForm){
+      adminUserSearchForm.addEventListener("submit", searchAdminUsers);
+    }
+    if(adminUsersList){
+      adminUsersList.addEventListener("click", async(event)=>{
+        const button = event.target.closest("[data-admin-user-id]");
+        if(!button) return;
+        const uid = button.dataset.adminUserId;
+        if(!uid) return;
+        const userSnap = await getDoc(doc(db, "users", uid));
+        if(userSnap.exists()){
+          adminSelectedUser = { id: userSnap.id, ...userSnap.data() };
+          await loadWorkspacesForUser(adminSelectedUser);
+        }
+      });
+    }
+    if(adminLoadWorkspaceBtn){
+      adminLoadWorkspaceBtn.addEventListener("click", loadWorkspaceById);
+    }
+    if(adminWorkspaceIdInput){
+      adminWorkspaceIdInput.addEventListener("keydown", (event)=>{
+        if(event.key === "Enter"){
+          event.preventDefault();
+          loadWorkspaceById();
+        }
+      });
+    }
+    if(adminWorkspacesList){
+      adminWorkspacesList.addEventListener("click", (event)=>{
+        const button = event.target.closest("[data-admin-save-workspace]");
+        if(button) saveWorkspacePlan(button);
+      });
+    }
+    if(adminRandomCodeBtn){
+      adminRandomCodeBtn.addEventListener("click", generatePromoCode);
+    }
+    if(adminPromoForm){
+      adminPromoForm.addEventListener("submit", savePromoCode);
+    }
+    if(adminRefreshLogsBtn){
+      adminRefreshLogsBtn.addEventListener("click", loadAdminLogs);
     }
 
     async function initAppForUser(user){
@@ -5203,16 +5734,34 @@
 
     // Nav + toggles
     window.nav=(vid)=>{
+      if(vid === 'view-admin' && !isCurrentUserAdmin()){
+        showToast("Acceso restringido a ADMIN_EMAILS.", { tone: "warning" });
+        vid = 'view-home';
+      }
+      const targetView = document.getElementById(vid);
+      if(!targetView){
+        console.warn("nav: vista no encontrada", vid);
+        return;
+      }
       document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
-      document.getElementById(vid).classList.add('active');
+      targetView.classList.add('active');
 
-      if(vid.includes('home')) document.getElementById('nav-home').classList.add('active');
-      if(vid.includes('cards')) document.getElementById('nav-cards').classList.add('active');
-      if(vid.includes('hist')) document.getElementById('nav-hist').classList.add('active');
-      if(vid.includes('msi')) document.getElementById('nav-msi').classList.add('active');
-      if(vid.includes('goals')) document.getElementById('nav-goals').classList.add('active');
-      if(vid.includes('settings')) document.getElementById('nav-settings').classList.add('active');
+      if(vid.includes('home')) document.getElementById('nav-home')?.classList.add('active');
+      if(vid.includes('cards')) document.getElementById('nav-cards')?.classList.add('active');
+      if(vid.includes('hist')) document.getElementById('nav-hist')?.classList.add('active');
+      if(vid.includes('msi')) document.getElementById('nav-msi')?.classList.add('active');
+      if(vid.includes('goals')) document.getElementById('nav-goals')?.classList.add('active');
+      if(vid.includes('settings')) document.getElementById('nav-settings')?.classList.add('active');
+      if(vid.includes('admin')) document.getElementById('nav-admin')?.classList.add('active');
+
+      if(vid === 'view-admin'){
+        updateAdminAccessUi();
+        if(!adminLogsLoaded) loadAdminLogs();
+        if(window.location.hash !== '#admin') window.history.replaceState(null, '', '#admin');
+      }else if(window.location.hash === '#admin'){
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
 
       // render MSI cuando entras
       if(vid === 'view-msi' && FEATURES.accounts) renderMsi();

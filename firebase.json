@@ -6,6 +6,12 @@
       "**/.*",
       "**/node_modules/**",
       "functions/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/admin",
+        "destination": "/index.html"
+      }
     ]
   },
   "firestore": {
