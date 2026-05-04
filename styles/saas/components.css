@@ -11,3 +11,28 @@
 .saas-btn { border-radius:12px; }
 .saas-empty-state { text-align:center; color:var(--saas-text-muted); padding:1rem; }
 .saas-list-item { border:1px solid var(--saas-border); border-radius:12px; padding:.8rem; background:var(--saas-bg-card); }
+
+.pro-modal-content { overflow:hidden; border-radius:28px; background:var(--saas-bg-card); box-shadow:0 28px 80px rgba(15,23,42,.24); }
+.pro-modal-hero { position:relative; padding:1.4rem; color:#fff; background:radial-gradient(circle at top left, rgba(255,255,255,.32), transparent 34%), linear-gradient(135deg, #111827 0%, #4338ca 55%, #06b6d4 100%); }
+.pro-close { position:absolute; top:1rem; right:1rem; filter:invert(1) grayscale(1); opacity:.85; }
+.pro-badge, .pro-eyebrow { display:inline-flex; width:max-content; align-items:center; gap:.35rem; border-radius:999px; font-size:.72rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.pro-badge { padding:.35rem .7rem; color:#e0f2fe; border:1px solid rgba(255,255,255,.32); background:rgba(255,255,255,.16); backdrop-filter:blur(12px); }
+.pro-modal-hero h5 { margin-top:1rem; font-size:clamp(2rem, 7vw, 3.6rem); line-height:.95; }
+.pro-subtitle { color:rgba(255,255,255,.86); font-size:1rem; }
+.pro-price-box { display:grid; grid-template-columns:1fr auto 1fr; gap:.75rem; align-items:center; margin-top:1.25rem; padding:1rem; border:1px solid rgba(255,255,255,.25); border-radius:20px; background:rgba(255,255,255,.14); }
+.pro-price-box strong { display:block; font-size:1.35rem; line-height:1; }
+.pro-price-box span, .pro-price-divider { color:rgba(255,255,255,.78); font-weight:700; }
+.pro-modal-body { display:grid; gap:1rem; padding:1.25rem; }
+.pro-copy-card { padding:1rem; border:1px solid var(--saas-border); border-radius:18px; background:color-mix(in srgb, var(--saas-bg-card) 86%, #eef2ff); }
+.pro-eyebrow { margin-bottom:.45rem; color:#4f46e5; }
+.pro-benefits-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:.75rem; }
+.pro-benefits-grid div { display:flex; align-items:center; gap:.55rem; padding:.85rem; border:1px solid var(--saas-border); border-radius:16px; background:var(--saas-bg-card); color:var(--saas-text-main); font-weight:800; }
+.pro-benefits-grid i { color:#4f46e5; width:1.1rem; text-align:center; }
+.pro-actions { display:grid; grid-template-columns:1.35fr 1fr; gap:.75rem; }
+.pro-settings-card { display:flex; justify-content:space-between; align-items:center; gap:1rem; border-color:color-mix(in srgb, #4f46e5 28%, var(--saas-border)); background:linear-gradient(135deg, color-mix(in srgb, #4f46e5 10%, var(--saas-bg-card)), var(--saas-bg-card)); }
+
+@media (max-width: 575.98px){
+  .pro-price-box, .pro-actions, .pro-benefits-grid { grid-template-columns:1fr; }
+  .pro-price-divider { text-align:center; }
+  .pro-settings-card { align-items:stretch; flex-direction:column; }
+}
