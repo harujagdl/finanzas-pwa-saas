@@ -1049,9 +1049,18 @@
   ======================= -->
   <div class="saas-app">
     <aside class="saas-sidebar">
-      <h6 class="fw-black mb-3">Finanzas</h6>
+      <div class="saas-sidebar-brand">
+        <div class="saas-sidebar-icon"><i class="fas fa-wallet"></i></div>
+        <div>
+          <div class="saas-sidebar-title">Finanzas Yayos</div>
+          <div class="saas-sidebar-subtitle">Control financiero</div>
+        </div>
+      </div>
+
+      <div class="saas-sidebar-label">MENÚ</div>
+
       <div class="d-grid gap-2">
-        <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-home')"><i class="fas fa-chart-pie me-2"></i>Inicio</button>
+        <button class="btn btn-outline-secondary text-start active" type="button" onclick="nav('view-home')"><i class="fas fa-chart-pie me-2"></i>Inicio</button>
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-cards')"><i class="fas fa-wallet me-2"></i>Cuentas</button>
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-add'); resetForm();"><i class="fas fa-plus me-2"></i>Nuevo movimiento</button>
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-msi')"><i class="fas fa-layer-group me-2"></i>MSI</button>
@@ -1069,6 +1078,23 @@
             <p class="saas-page-subtitle">Resumen general de tus finanzas.</p>
           </div>
           <button class="btn btn-primary" type="button" onclick="nav('view-add'); resetForm();">+ Nuevo movimiento</button>
+        </div>
+
+        <div class="saas-control-row">
+          <div>
+            <h2 class="saas-control-title">Control Total</h2>
+            <div class="saas-control-meta">
+              <span class="sync-pill synced">ONLINE</span>
+              <span class="sync-pill synced">SINCRONIZADO</span>
+              <span class="text-muted small">Última sincronización: <span id="saas-sync-time-clone">--</span></span>
+            </div>
+          </div>
+          <div class="saas-control-actions">
+            <select id="owner-select-desktop" class="form-select form-select-sm owner-select" title="Espacio de trabajo desktop">
+              <option>Yair</option>
+            </select>
+            <button class="btn btn-sm btn-outline-secondary" type="button" onclick="manualRefresh()"><i class="fas fa-rotate-right"></i></button>
+          </div>
         </div>
 
   <div id="view-home" class="view-section active p-3">
@@ -1124,6 +1150,21 @@
         </button>
       </div>
     </div>
+
+    <section id="scope-filter-section" class="card-box p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="kpi-label">Filtro de gastos</div>
+        <span class="text-muted small" id="scope-filter-label">Todo</span>
+      </div>
+      <div class="btn-group w-100" role="group" aria-label="Filtro de gastos">
+        <input type="radio" class="btn-check" name="scope-filter" id="scope-filter-all" value="all" onchange="handleScopeFilterChange(this.value)">
+        <label class="btn btn-outline-secondary" for="scope-filter-all">Todo</label>
+        <input type="radio" class="btn-check" name="scope-filter" id="scope-filter-shared" value="shared" onchange="handleScopeFilterChange(this.value)">
+        <label class="btn btn-outline-secondary" for="scope-filter-shared">Compartido</label>
+        <input type="radio" class="btn-check" name="scope-filter" id="scope-filter-personal" value="personal" onchange="handleScopeFilterChange(this.value)">
+        <label class="btn btn-outline-secondary" for="scope-filter-personal">Personal</label>
+      </div>
+    </section>
 
     <div id="smart-area" class="d-none">
       <div class="smart-banner">
@@ -1183,20 +1224,7 @@
       <button class="btn btn-outline-secondary btn-sm" type="button" id="load-demo-btn">Cargar demo</button>
     </section>
 
-    <section id="scope-filter-section" class="card-box p-3 mb-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="kpi-label">Filtro de gastos</div>
-        <span class="text-muted small" id="scope-filter-label">Todo</span>
-      </div>
-      <div class="btn-group w-100" role="group" aria-label="Filtro de gastos">
-        <input type="radio" class="btn-check" name="scope-filter" id="scope-filter-all" value="all" onchange="handleScopeFilterChange(this.value)">
-        <label class="btn btn-outline-secondary" for="scope-filter-all">Todo</label>
-        <input type="radio" class="btn-check" name="scope-filter" id="scope-filter-shared" value="shared" onchange="handleScopeFilterChange(this.value)">
-        <label class="btn btn-outline-secondary" for="scope-filter-shared">Compartido</label>
-        <input type="radio" class="btn-check" name="scope-filter" id="scope-filter-personal" value="personal" onchange="handleScopeFilterChange(this.value)">
-        <label class="btn btn-outline-secondary" for="scope-filter-personal">Personal</label>
-      </div>
-    </section>
+
 
     <section id="dashboard-summary" class="card-box saas-card">
       <div class="saas-card-header">
