@@ -1,0 +1,16 @@
+@import url('../yayos/styles/yayos-tokens.css');
+@import url('../yayos/styles/yayos-theme.css');
+
+:root {
+  --saas-bg-body: var(--bg-body);
+  --saas-bg-card: var(--bg-card);
+  --saas-text-main: var(--text-main);
+  --saas-text-muted: var(--text-muted);
+  --saas-primary: var(--primary);
+  --saas-success: var(--success);
+  --saas-warning: var(--warning);
+  --saas-danger: var(--danger);
+  --saas-border: var(--border-color);
+  --saas-shadow: var(--shadow2, var(--shadow, 0 16px 40px rgba(15,23,42,.08)));
+  --saas-radius-card: var(--r-xl, 20px);
+}

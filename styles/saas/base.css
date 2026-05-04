@@ -1,0 +1,13 @@
+@import url('../yayos/styles/yayos-components.css');
+@import url('../yayos/styles/yayos-saas-bridge.css');
+
+body {
+  background: var(--saas-bg-body);
+  color: var(--saas-text-main);
+}
+
+.card-box {
+  border: 1px solid var(--saas-border);
+  border-radius: var(--saas-radius-card);
+  box-shadow: var(--saas-shadow);
+}

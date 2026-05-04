@@ -1,0 +1,13 @@
+.saas-card { background: var(--saas-bg-card); border: 1px solid var(--saas-border); border-radius: var(--saas-radius-card); padding: 1rem; }
+.saas-card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:1rem; }
+.saas-card-eyebrow { margin:0; font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--saas-text-muted); font-weight:700; }
+.saas-card-title { margin:.2rem 0; font-size:1.1rem; font-weight:800; }
+.saas-card-subtitle { margin:0; color:var(--saas-text-muted); font-size:.82rem; }
+.saas-badge { display:inline-flex; align-items:center; border-radius:999px; font-size:.72rem; font-weight:700; padding:.2rem .55rem; border:1px solid transparent; }
+.saas-badge.success { color:var(--saas-success); background:color-mix(in srgb, var(--saas-success) 15%, transparent); border-color:color-mix(in srgb, var(--saas-success) 35%, transparent); }
+.saas-badge.warning { color:var(--saas-warning); background:color-mix(in srgb, var(--saas-warning) 15%, transparent); border-color:color-mix(in srgb, var(--saas-warning) 35%, transparent); }
+.saas-badge.danger { color:var(--saas-danger); background:color-mix(in srgb, var(--saas-danger) 15%, transparent); border-color:color-mix(in srgb, var(--saas-danger) 35%, transparent); }
+.saas-badge.neutral { color:var(--saas-text-muted); background:color-mix(in srgb, var(--saas-text-muted) 15%, transparent); border-color:var(--saas-border); }
+.saas-btn { border-radius:12px; }
+.saas-empty-state { text-align:center; color:var(--saas-text-muted); padding:1rem; }
+.saas-list-item { border:1px solid var(--saas-border); border-radius:12px; padding:.8rem; background:var(--saas-bg-card); }
