@@ -2300,6 +2300,20 @@
       if(loaderError) loaderError.classList.remove("d-none");
     }
 
+    window.addEventListener("error", (event) => {
+      console.error("Global error during init:", event?.error || event?.message || event);
+      if(typeof showBlockingInitError === "function"){
+        showBlockingInitError("Ocurrió un error inesperado al iniciar la app. Recarga para intentar de nuevo.");
+      }
+    });
+
+    window.addEventListener("unhandledrejection", (event) => {
+      console.error("Unhandled promise rejection during init:", event?.reason || event);
+      if(typeof showBlockingInitError === "function"){
+        showBlockingInitError("Ocurrió un error inesperado al iniciar la app. Recarga para intentar de nuevo.");
+      }
+    });
+
     function initFirebase() {
       try {
         // Singleton global: evita re-init y evita habilitar persistencia tarde
@@ -4315,10 +4329,11 @@
         await ensureSettingsDefaults();
         toggleOnboardingVisibility(false);
         await migrateMovementsIfNeeded();
+        resubscribeAll();
       }catch(err){
-        console.warn("Inicialización de catálogos incompleta:", err);
+        console.error("bootApp error", err);
+        showStartupError(getFirestoreErrorMessage(err), { canRetry: true });
       }
-      resubscribeAll();
     }
 // =========================
     // 🔔 PUSH (por ahora placeholder)
@@ -9302,21 +9317,6 @@
       return true;
     }
 
-    function openRedeemCodeModal(){
-      const modalEl = document.getElementById("modalRedeemCode");
-      if(!modalEl || !window.bootstrap) return false;
-      if(!redeemCodeModal){
-        redeemCodeModal = new bootstrap.Modal(modalEl);
-      }
-      if(redeemCodeError){
-        redeemCodeError.textContent = "";
-        redeemCodeError.classList.add("d-none");
-      }
-      redeemCodeModal.show();
-      setTimeout(()=>redeemCodeInput?.focus(), 250);
-      return true;
-    }
-
     function showRedeemCodeModal(){
       if(openRedeemCodeModal()) return;
       showToast("Abre el formulario de código desde un navegador compatible.", { tone: "info", duration: 3200 });
@@ -9353,8 +9353,12 @@
       if(!redeemCodeModal){
         redeemCodeModal = new bootstrap.Modal(modalEl);
       }
+      if(redeemCodeError){
+        redeemCodeError.textContent = "";
+        redeemCodeError.classList.add("d-none");
+      }
       redeemCodeModal.show();
-      setTimeout(()=>document.getElementById("redeem-code-input")?.focus(), 250);
+      setTimeout(()=>redeemCodeInput?.focus(), 250);
       return true;
     }
 
