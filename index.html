@@ -1143,7 +1143,6 @@
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-hist')"><i class="fas fa-list-ul me-2"></i>Historial</button>
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-goals')"><span class="me-2">🏆</span>Metas</button>
         <button class="btn btn-outline-secondary text-start" type="button" onclick="nav('view-settings')"><i class="fas fa-sliders me-2"></i>Ajustes</button>
-        <button class="btn btn-outline-secondary text-start d-none" type="button" onclick="showAdminScreen()" data-admin-only><i class="fas fa-shield-halved me-2"></i>Admin</button>
       </div>
     </aside>
 
@@ -1168,6 +1167,9 @@
             </div>
           </div>
           <div class="saas-control-actions">
+            <button class="btn btn-sm btn-outline-secondary d-none" type="button" onclick="showAdminScreen()" data-admin-only>
+              Admin Center
+            </button>
             <select id="owner-select-desktop" class="form-select form-select-sm owner-select" title="Espacio de trabajo desktop">
               <option>Yair</option>
             </select>
@@ -1892,11 +1894,6 @@
         <i class="fas fa-sliders"></i> Ajustes
       </button>
     </div>
-    <div class="nav-container-item d-none" data-admin-only>
-      <button class="nav-btn" onclick="showAdminScreen()" id="nav-admin">
-        <i class="fas fa-shield-halved"></i> Admin
-      </button>
-    </div>
   </div>
 
   <!-- =======================
@@ -2122,6 +2119,23 @@
         <p>Esta zona es solo para administradores de PocketFlow.</p>
         <button class="btn btn-primary" type="button" onclick="hideAdminScreen()">Volver a PocketFlow</button>
       </div>
+      <div id="admin-login" class="admin-denied-card d-none">
+        <div class="admin-denied-icon"><i class="fas fa-user-shield"></i></div>
+        <h1>PocketFlow Admin Center</h1>
+        <p>Acceso administrativo</p>
+        <form id="admin-login-form" class="text-start">
+          <div class="mb-3">
+            <label class="small text-muted fw-bold mb-1">Email</label>
+            <input type="email" id="admin-login-email" class="form-control" autocomplete="email" required />
+          </div>
+          <div class="mb-3">
+            <label class="small text-muted fw-bold mb-1">Password</label>
+            <input type="password" id="admin-login-password" class="form-control" autocomplete="current-password" required />
+          </div>
+          <div id="admin-login-message" class="small text-danger mb-3"></div>
+          <button class="btn btn-primary w-100" type="submit" id="admin-login-submit">Entrar como admin</button>
+        </form>
+      </div>
 
       <div id="admin-panel" class="admin-panel d-none">
         <header class="admin-topbar">
@@ -2132,6 +2146,7 @@
           </div>
           <div class="admin-topbar-actions">
             <span class="admin-email-pill" id="admin-email-badge">ADMIN</span>
+            <button class="btn btn-outline-danger" type="button" onclick="logoutAdmin()">Cerrar sesión</button>
             <button class="btn btn-outline-secondary" type="button" onclick="hideAdminScreen()">
               <i class="fas fa-arrow-left me-1"></i> Volver a PocketFlow
             </button>
@@ -2396,6 +2411,12 @@
     const logoutBtn = document.getElementById("logout-btn");
     const authGreeting = document.getElementById("auth-greeting");
     const adminAccessDenied = document.getElementById("admin-access-denied");
+    const adminLoginCard = document.getElementById("admin-login");
+    const adminLoginForm = document.getElementById("admin-login-form");
+    const adminLoginEmailInput = document.getElementById("admin-login-email");
+    const adminLoginPasswordInput = document.getElementById("admin-login-password");
+    const adminLoginMessage = document.getElementById("admin-login-message");
+    const adminLoginSubmit = document.getElementById("admin-login-submit");
     const adminPanel = document.getElementById("admin-panel");
     const adminEmailBadge = document.getElementById("admin-email-badge");
     const adminStatus = document.getElementById("admin-status");
@@ -3616,10 +3637,12 @@
 
     function updateAdminAccessUi(){
       const isAdmin = isCurrentUserAdmin();
+      const hasUser = Boolean(currentUser);
       document.querySelectorAll("[data-admin-only]").forEach((el)=>{
         el.classList.toggle("d-none", !isAdmin);
       });
-      if(adminAccessDenied) adminAccessDenied.classList.toggle("d-none", isAdmin);
+      if(adminLoginCard) adminLoginCard.classList.toggle("d-none", hasUser);
+      if(adminAccessDenied) adminAccessDenied.classList.toggle("d-none", isAdmin || !hasUser);
       if(adminPanel) adminPanel.classList.toggle("d-none", !isAdmin);
       if(adminEmailBadge) adminEmailBadge.textContent = currentUser?.email || "ADMIN";
       if(!isAdmin){
@@ -3651,6 +3674,7 @@
 
     function hideAdminScreen(){
       screenAdmin?.classList.add("hidden");
+      if(adminLoginMessage) adminLoginMessage.textContent = "";
       if(currentUser){
         showScreen("app");
         nav("view-home");
@@ -3664,6 +3688,36 @@
 
     window.showAdminScreen = showAdminScreen;
     window.hideAdminScreen = hideAdminScreen;
+    window.logoutAdmin = async function logoutAdmin(){
+      if(typeof logoutUser === "function"){
+        await logoutUser();
+      }else if(auth){
+        await signOut(auth);
+      }
+      window.location.href = "/";
+    };
+
+    async function handleAdminLogin(event){
+      event.preventDefault();
+      if(!auth) return;
+      const email = String(adminLoginEmailInput?.value || "").trim();
+      const password = String(adminLoginPasswordInput?.value || "");
+      if(adminLoginMessage) adminLoginMessage.textContent = "";
+      if(adminLoginSubmit) adminLoginSubmit.disabled = true;
+      try{
+        await signInWithEmailAndPassword(auth, email, password);
+        if(!isCurrentUserAdmin()){
+          if(adminLoginMessage) adminLoginMessage.textContent = "Acceso restringido";
+          await signOut(auth);
+          return;
+        }
+        showAdminScreen();
+      }catch(err){
+        if(adminLoginMessage) adminLoginMessage.textContent = getAuthErrorMessage(err);
+      }finally{
+        if(adminLoginSubmit) adminLoginSubmit.disabled = false;
+      }
+    }
 
     function openRequestedRoute(){
       if(getRequestedAdminRoute()){
@@ -4251,6 +4305,9 @@
     }
     if(adminPromoForm){
       adminPromoForm.addEventListener("submit", savePromoCode);
+    }
+    if(adminLoginForm){
+      adminLoginForm.addEventListener("submit", handleAdminLogin);
     }
     if(adminRefreshPromosBtn){
       adminRefreshPromosBtn.addEventListener("click", loadAdminPromos);
