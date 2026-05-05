@@ -9391,7 +9391,10 @@
       proModal?.hide();
       showRedeemCodeModal();
     });
-    redeemCodeForm?.addEventListener("submit", handleRedeemCodeSubmit);
+    redeemCodeForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      applyRedeemCode();
+    });
 
     window.exportCSV=()=>{
       if(!hasFeature("csvExport")){
