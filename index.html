@@ -2047,6 +2047,7 @@
             <span class="pro-badge">Próximamente / Acceso anticipado</span>
             <h5 class="fw-black mb-2" id="modalProLabel">PocketFlow Pro</h5>
             <p class="pro-subtitle mb-0">Más control, más claridad y menos sorpresas.</p>
+            <p id="modalProMessage" class="text-muted small mt-2 mb-0">Activa Pro para desbloquear reportes, CSV y alertas.</p>
             <div class="pro-price-box">
               <div><strong>$49 MXN</strong> <span>/ mes</span></div>
               <div class="pro-price-divider">o</div>
@@ -2074,33 +2075,6 @@
               <button class="btn btn-primary btn-lg" type="button" onclick="activateProViaWhatsApp()">Quiero activar Pro</button>
               <button class="btn btn-outline-secondary btn-lg" type="button" onclick="openRedeemCodeModal()">Tengo un código</button>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="modalRedeemCode" tabindex="-1" aria-labelledby="modalRedeemCodeLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content card-box border-0">
-        <div class="modal-body">
-          <div class="d-flex justify-content-between align-items-start mb-3">
-            <div>
-              <h5 class="fw-black mb-1" id="modalRedeemCodeLabel">Tengo un código</h5>
-              <p class="text-muted small mb-0">Ingresa tu código de activación PocketFlow Pro.</p>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-          </div>
-          <div class="mb-3">
-            <label class="small text-muted fw-bold" for="redeem-code-input">Código</label>
-            <input type="text" id="redeem-code-input" class="form-control admin-code" placeholder="PRO-ABC123" autocomplete="off" />
-          </div>
-          <div id="redeem-code-message" class="alert alert-info small">
-            Redención automática próximamente. Envíanos tu código para activarlo manualmente.
-          </div>
-          <div class="d-flex gap-2 mt-3">
-            <button class="btn btn-primary flex-fill" type="button" onclick="applyRedeemCode()">Aplicar código</button>
-            <button class="btn btn-light flex-fill" type="button" data-bs-dismiss="modal">Cancelar</button>
           </div>
         </div>
       </div>
@@ -9362,6 +9336,11 @@
       return true;
     }
 
+    function handleRedeemCodeSubmit(event){
+      event?.preventDefault?.();
+      applyRedeemCode();
+    }
+
     function applyRedeemCode(){
       const input = document.getElementById("redeem-code-input");
       const messageEl = document.getElementById("redeem-code-message");
@@ -9379,6 +9358,21 @@
       if(typeof showToast === "function"){
         showToast(message, { tone: "info", duration: 5200 });
       }
+    }
+
+    async function redeemPromoCode(code){
+      const normalizedCode = (code || "").trim().toUpperCase();
+      if(!normalizedCode){
+        redeemCodeError && (redeemCodeError.textContent = "Ingresa un código válido.");
+        redeemCodeError?.classList.remove("d-none");
+        return;
+      }
+      const fallbackMessage = "Redención automática próximamente. Envíanos tu código para activarlo manualmente.";
+      if(redeemCodeError){
+        redeemCodeError.textContent = fallbackMessage;
+        redeemCodeError.classList.remove("d-none");
+      }
+      showToast?.(fallbackMessage, { tone: "info", duration: 5200 });
     }
 
     window.showProComingSoon = showProComingSoon;
