@@ -2575,7 +2575,7 @@
     }
 
     function isPro(){
-      return getCurrentPlan() === "pro";
+      return ["pro", "couple"].includes(getCurrentPlan());
     }
 
     function isCouple(){
@@ -2587,12 +2587,17 @@
       return Boolean(PLAN_FEATURES[plan]?.[featureKey]);
     }
 
-    async function ensureDefaultWorkspaceForUser(user, profileData = {}){
-      if(!db || !user?.uid) return profileData || null;
-      if(profileData?.activeWorkspaceId) return profileData;
+    async function ensureDefaultWorkspace(user, profileData = null){
+      if(!db || !user?.uid) return null;
+      let profile = profileData;
+      if(!profile){
+        const profileSnap = await getDoc(doc(db, "users", user.uid));
+        profile = profileSnap.exists() ? profileSnap.data() : {};
+      }
+      if(profile?.activeWorkspaceId) return profile.activeWorkspaceId;
       const workspaceRef = doc(collection(db, "workspaces"));
-      const displayName = user.displayName || profileData.displayName || profileData.profile?.displayName || "";
-      const email = user.email || profileData.email || "";
+      const displayName = user.displayName || profile?.displayName || profile?.profile?.displayName || "";
+      const email = user.email || profile?.email || "";
       const workspaceName = displayName || email || "Mi PocketFlow";
       await setDoc(workspaceRef, {
         name: workspaceName,
@@ -2605,14 +2610,13 @@
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-      const workspaceIds = Array.isArray(profileData.workspaceIds) ? [...new Set([...profileData.workspaceIds, workspaceRef.id])] : [workspaceRef.id];
-      const patch = {
+      const workspaceIds = Array.isArray(profile?.workspaceIds) ? [...new Set([...profile.workspaceIds, workspaceRef.id])] : [workspaceRef.id];
+      await setDoc(doc(db, "users", user.uid), {
         activeWorkspaceId: workspaceRef.id,
         workspaceIds,
         updatedAt: serverTimestamp()
-      };
-      await setDoc(doc(db, "users", user.uid), patch, { merge: true });
-      return { ...profileData, ...patch };
+      }, { merge: true });
+      return workspaceRef.id;
     }
 
     async function loadActiveWorkspaceAndPlan(){
@@ -2624,7 +2628,11 @@
       }
       const profileSnap = await getDoc(doc(db, "users", currentUser.uid));
       let profile = profileSnap.exists() ? profileSnap.data() : {};
-      profile = await ensureDefaultWorkspaceForUser(currentUser, profile);
+      const workspaceId = await ensureDefaultWorkspace(currentUser, profile);
+      if(workspaceId && !profile?.activeWorkspaceId){
+        const workspaceIds = Array.isArray(profile.workspaceIds) ? [...new Set([...profile.workspaceIds, workspaceId])] : [workspaceId];
+        profile = { ...profile, activeWorkspaceId: workspaceId, workspaceIds };
+      }
       window.userProfile = profile;
       let planSource = profile?.plan ? { plan: profile.plan, status: profile.planStatus || "active", planExpiresAt: profile.planExpiresAt || null } : { plan: "free", status: "active" };
       activeWorkspace = null;
@@ -9433,18 +9441,69 @@
     }
 
     async function redeemPromoCode(code){
-      const normalizedCode = (code || "").trim().toUpperCase();
+      const normalizedCode = String(code || "").trim().toUpperCase().replace(/\s+/g, "-");
       if(!normalizedCode){
-        redeemCodeError && (redeemCodeError.textContent = "Ingresa un código válido.");
-        redeemCodeError?.classList.remove("d-none");
+        if(redeemCodeError){ redeemCodeError.textContent = "Ingresa un código válido."; redeemCodeError.classList.remove("d-none"); }
         return;
       }
-      const fallbackMessage = "Redención automática próximamente. Envíanos tu código para activarlo manualmente.";
-      if(redeemCodeError){
-        redeemCodeError.textContent = fallbackMessage;
-        redeemCodeError.classList.remove("d-none");
+      if(!db || !currentUser?.uid || !window.userProfile?.activeWorkspaceId){
+        showToast("No pudimos validar tu sesión. Vuelve a iniciar sesión.", { tone: "warning" });
+        return;
       }
-      showToast?.(fallbackMessage, { tone: "info", duration: 5200 });
+      const manualMsg = "No pudimos aplicar el código automáticamente. Envíanos tu código para activarlo manualmente.";
+      try{
+        if(redeemCodeError){ redeemCodeError.textContent = "Validando código..."; redeemCodeError.classList.remove("d-none"); }
+        const promoRef = doc(db, "promoCodes", normalizedCode);
+        const promoSnap = await getDoc(promoRef);
+        if(!promoSnap.exists()) throw new Error("Código inválido o inexistente.");
+        const promo = promoSnap.data() || {};
+        if((promo.status || "active") !== "active") throw new Error("Este código no está activo.");
+        if(isPlanExpired({ planExpiresAt: promo.expiresAt })) throw new Error("Este código ya expiró.");
+        if(Number(promo.redeemedCount || 0) >= Number(promo.maxRedemptions || 1)) throw new Error("Este código ya alcanzó su límite de usos.");
+        const redemptionRef = doc(db, "promoCodes", normalizedCode, "redemptions", currentUser.uid);
+        const redemptionSnap = await getDoc(redemptionRef);
+        if(redemptionSnap.exists()) throw new Error("Este código ya fue redimido por tu usuario.");
+        let planExpiresAt = null;
+        if(Number(promo.planDays || 0) > 0){
+          const d = new Date(); d.setDate(d.getDate() + Number(promo.planDays));
+          planExpiresAt = Timestamp.fromDate(d);
+        }else if(promo.expiresAt){
+          planExpiresAt = promo.expiresAt;
+        }
+        const nextPlan = normalizePlanName(promo.plan);
+        await setDoc(doc(db, "workspaces", window.userProfile.activeWorkspaceId), {
+          plan: nextPlan,
+          status: "active",
+          planExpiresAt,
+          maxMembers: nextPlan === "couple" ? 2 : 1,
+          updatedAt: serverTimestamp(),
+          updatedByPromoCode: normalizedCode
+        }, { merge: true });
+        await updateDoc(promoRef, { redeemedCount: increment(1), lastRedeemedAt: serverTimestamp() });
+        await setDoc(redemptionRef, {
+          uid: currentUser.uid,
+          email: currentUser.email || null,
+          workspaceId: window.userProfile.activeWorkspaceId,
+          redeemedAt: serverTimestamp()
+        }, { merge: false });
+        await addDoc(collection(db, "adminLogs"), {
+          action: "promo_code_redeemed",
+          code: normalizedCode,
+          uid: currentUser.uid,
+          email: currentUser.email || null,
+          workspaceId: window.userProfile.activeWorkspaceId,
+          createdAt: serverTimestamp()
+        });
+        await loadActiveWorkspaceAndPlan();
+        redeemCodeModal?.hide();
+        showToast("Código aplicado. Ahora tienes PocketFlow Pro.", { tone: "success" });
+      }catch(err){
+        const msg = String(err?.message || "");
+        const blocked = /permission|missing or insufficient permissions/i.test(msg);
+        const output = blocked ? manualMsg : msg;
+        if(redeemCodeError){ redeemCodeError.textContent = output; redeemCodeError.classList.remove("d-none"); }
+        showToast(output || manualMsg, { tone: "warning", duration: 5200 });
+      }
     }
 
     window.showProComingSoon = showProComingSoon;

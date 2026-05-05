@@ -1,6 +1,6 @@
 # Sistema Pro de PocketFlow
 
-Este documento describe la primera versión del sistema de membresías **Free / Pro / Couple**. No incluye pagos: los planes se administran manualmente desde Admin Center o con códigos promo redimidos por Cloud Function.
+Este documento describe la primera versión del sistema de membresías **Free / Pro / Couple**. No incluye pagos: los planes se administran manualmente desde Admin Center o con códigos promo redimidos desde frontend (v1) con reglas de Firestore.
 
 ## Modelo de datos
 
@@ -14,7 +14,7 @@ El workspace es la fuente principal para resolver el plan activo:
   ownerUid: "uid",
   memberUids: ["uid"],
   plan: "free" | "pro" | "couple",
-  status: "active" | "trialing" | "expired" | "canceled",
+  status: "active" | "expired" | "canceled",
   planExpiresAt: Timestamp | null,
   maxMembers: 1 | 2,
   createdAt: serverTimestamp(),
@@ -60,23 +60,20 @@ Si un plan tiene `planExpiresAt` vencido, el cliente lo normaliza a `free` y mar
 
 ## Redención de códigos promo
 
-La redención automática usa la callable Cloud Function `redeemPromoCode`.
-
-Input:
-
-```js
-{ code: "PRO-ABC123" }
-```
+La redención automática usa `redeemPromoCode(code)` en el frontend.
 
 Flujo resumido:
 
-1. Requiere usuario autenticado.
+1. Requiere usuario autenticado y `activeWorkspaceId`.
 2. Normaliza el código a uppercase.
 3. Valida `promoCodes/{code}`: existe, `status === "active"`, no expiró y no rebasó `maxRedemptions`.
 4. Evita doble redención revisando `promoCodes/{code}/redemptions/{uid}`.
-5. Actualiza el workspace activo con `plan`, `status`, `planExpiresAt`, `maxMembers`.
-6. Incrementa `redeemedCount` y guarda `lastRedeemedAt`.
-7. Crea redemption log y `adminLogs` con `promo_code_redeemed`.
+5. Calcula `planExpiresAt` con `planDays` o `expiresAt`.
+6. Actualiza el workspace activo con `plan`, `status`, `planExpiresAt`, `maxMembers`, `updatedByPromoCode`.
+7. Incrementa `redeemedCount` y guarda `lastRedeemedAt`.
+8. Crea `promoCodes/{code}/redemptions/{uid}` y registro en `adminLogs` con `promo_code_redeemed`.
+9. Recarga plan/UI con `loadActiveWorkspaceAndPlan()`.
+10. Si Firestore Rules bloquea la actualización, se muestra: “No pudimos aplicar el código automáticamente. Envíanos tu código para activarlo manualmente.”
 
 ## Admin Center
 
@@ -95,6 +92,5 @@ Admin Center permite:
 
 - Los miembros pueden leer su workspace.
 - Los usuarios pueden crear su workspace Free por defecto.
-- Los miembros no pueden elevar su plan desde Firestore Rules.
-- La promoción de plan se hace desde Cloud Function con Firebase Admin SDK.
+- Los miembros pueden actualizar solo campos controlados del plan durante redención (`plan`, `status`, `planExpiresAt`, `maxMembers`, `updatedAt`, `updatedByPromoCode`).
 - Los administradores conservan permisos para administrar planes y promos manualmente.
