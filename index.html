@@ -9383,7 +9383,9 @@
 
     window.showProComingSoon = showProComingSoon;
     window.showRedeemCodeModal = showRedeemCodeModal;
-    window.redeemPromoCode = redeemPromoCode;
+    if (typeof redeemPromoCode === "function") {
+      window.redeemPromoCode = redeemPromoCode;
+    }
 
     proRedeemCta?.addEventListener("click", ()=>{
       proModal?.hide();
